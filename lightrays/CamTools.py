@@ -31,7 +31,7 @@ class WebcamVideoStream :
         self.read_lock.acquire()
         frame = self.frame.copy()
         self.read_lock.release()
-        return frame
+        return 1, frame
 
     def stop(self) :
         self.started = False

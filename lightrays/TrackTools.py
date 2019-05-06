@@ -12,12 +12,13 @@ class LaserTracker:
         self.lowerRange = lowerRange
         self.trackerStatus = False #initally there is no tracker running
         self.onScreen = False #Tell us if the laser is currently detected
-        self.ptsDeque = deque(maxlen=deque_buffer) #empty list for tracked points
-        self.disDeque = deque(maxlen=deque_buffer) #empty list for tracked velocity
-        self.dirDeque = deque(maxlen=deque_buffer) #empty list for tracked direciton
-
+        self.ptsDeque = deque() #empty list for tracked points
+        self.disDeque = deque() #empty list for tracked velocity
+        self.dirDeque = deque() #empty list for tracked direciton
+        self.lostTrackCounter = -1; #initialize the number of times we've lost it
     def detect(self, frame): #initial detection of the laser contour
-        frame = imutils.resize(frame, width=600) #resize the frame
+        #Should be resized from the source:
+        # frame = imutils.resize(frame, width=500) #resize the frame
         blurred = cv2.GaussianBlur(frame, (11, 11), 0) #blur the frame
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV) #convert to HSV
 
@@ -39,8 +40,12 @@ class LaserTracker:
             # centroid
             c = max(cnts, key=cv2.contourArea)
             ((self.x, self.y), radius) = cv2.minEnclosingCircle(c)
-            M = cv2.moments(c)
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+            center = (int(self.x), int(self.y)) #convert to pixels
+
+            #This may be unecessary since it is a dot:
+            # M = cv2.moments(c)
+            # center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+
             self.onScreen = True
             self.ptsDeque.appendleft(center) #add points to list
 
@@ -76,7 +81,7 @@ class LaserTracker:
             tracker = cv2.TrackerCSRT_create()
 
         #Compute inital bounding box with center rand radius:
-        bbox = (center[0]-radius, center[1]-radius, 2*radius, 2*radius) #(xmin,ymin,boxwidth,boxheight)
+        bbox = (center[0]-radius, center[1]-radius, 2.5*radius, 2.5*radius) #(xmin,ymin,boxwidth,boxheight)
 
         # Initialize tracker with first frame and bounding box
         self.trackerStatus = tracker.init(frame, bbox)
@@ -85,14 +90,12 @@ class LaserTracker:
     def update_tracker(self,frame):
             # Update tracker
             self.trackerStatus, bbox = self.tracker.update(frame)
-            # Draw bounding box
             if self.trackerStatus:
                 # Tracking success
                 self.onScreen = True
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2)) #x coord is xmin+width/2
                 self.radius = bbox[2]/2
                 self.ptsDeque.appendleft(self.center) #add points to list
-
                 self.calc_direction_speed(self.ptsDeque)
 
             else :
@@ -105,6 +108,8 @@ class LaserTracker:
             self.update_tracker(frame)
         else:
             self.detect(frame) #run the detector if the tracker isn't working
+            self.lostTrackCounter = self.lostTrackCounter+1 #increment the counter
+
             if self.center: #if we have detected the object
                 self.initialize_tracker(self.center,self.radius,frame)  #initialize the tracker
 
@@ -112,7 +117,7 @@ class LaserTracker:
     def calc_direction_speed(self, pts):
         # if pts[i - 10] is None or pts[i] is None: #do we have 10 pts
         #     continue
-        dX = pts[-1][0] - pts[-2][0]
-        dY = pts[-1][1] - pts[-2][1]
+        dX = pts[1][0] - pts[0][0]
+        dY = pts[1][1] - pts[0][1]
         self.dirDeque.appendleft(math.atan2(dY,dX))
         self.disDeque.appendleft(math.sqrt((dY*dY)+(dX*dX)))
