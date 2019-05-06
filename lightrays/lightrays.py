@@ -30,12 +30,12 @@ red_upperVideo = (11,144,255)
 
 blue_laser = TrackTools.LaserTracker(blue_lower,blue_upper,50)
 green_laser = TrackTools.LaserTracker(green_lower,green_upper,255)
-red_laser_video = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,255)
+red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
+# red_laser = TrackTools.LaserTracker(red_lower,red_upper,255)
 
 
-video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
-# video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+# video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
 
 fps = FPS().start()
 
@@ -64,7 +64,11 @@ while(1):
     if red_laser.onScreen:
         # frame = DrawTools.draw_tracking_reticle(frame,blue_laser)
         # canvas_image = DrawTools.draw_canvas_circle(canvas_image, blue_laser, (255, 0, 0))
-        canvas_image =DrawTools.draw_contrails(canvas_image, red_laser,
+
+        # canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
+        # (0,0,0),100,0)
+
+        canvas_image = DrawTools.draw_rotating_triangles(canvas_image, red_laser.ptsDeque,
         (0,0,0),100,0)
 
         # canvas_image = DrawTools.draw_trail_simple(canvas_image, red_laser,

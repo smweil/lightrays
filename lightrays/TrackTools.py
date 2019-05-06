@@ -108,7 +108,7 @@ class LaserTracker:
             self.update_tracker(frame)
         else:
             self.detect(frame) #run the detector if the tracker isn't working
-            self.lostTrackCounter = self.lostTrackCounter+1 #increment the counter
+            self.lostTrackCounter +=1#increment the counter
 
             if self.center: #if we have detected the object
                 self.initialize_tracker(self.center,self.radius,frame)  #initialize the tracker

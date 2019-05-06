@@ -19,14 +19,11 @@ def draw_trail_simple(frame, LaserTracker, color):
     return frame
 
 #from:https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-def draw_contrails(frame,LaserTracker,color,tail_length=255,dbg=0):
-    pts = LaserTracker.ptsDeque
+def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
     height = frame.shape[0]
     width = frame.shape[1]
-
     #blackout the canvas:
     # frame = np.zeros((height, width), dtype=np.uint8)
-
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
         tail_length = len(pts)
@@ -44,21 +41,73 @@ def draw_contrails(frame,LaserTracker,color,tail_length=255,dbg=0):
 
         if not color_flag: #display colors!
             #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
-
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
-            cv2.line(frame, pts[i - 1], pts[i], color, thickness)
+            cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
         else:
             cv2.line(frame, pts[i - 1], pts[i], color, thickness)
-
-        if dbg and i ==1:
-            if LaserTracker.dirDeque:
-                dir = (LaserTracker.dirDeque[i]*180)/3.1415
-                cv2.putText(frame,
-                "Direction: {:06.2f}, Distance: {:06.2f}".format(dir, LaserTracker.disDeque[i]),
-                (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.35, (0, 0, 255), 1)
     return frame
 
+
+def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
+    height = frame.shape[0]
+    width = frame.shape[1]
+    #blackout the canvas:
+    # frame = np.zeros((height, width), dtype=np.uint8)
+    #check if the buffer is smaller than the number of points:
+    if tail_length > len(pts):
+        tail_length = len(pts)
+
+    #if color = (0,0,0) we attempt a rainbow
+    color_flag = 0
+
+    for i in range(1, tail_length):
+		# if either of the tracked points are None, ignore
+        print (pts[i])
+        if pts[i - 1] is None or pts[i] is None:
+            continue
+		# otherwise, compute the thickness of the line and draw
+        # thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
+        tri_pts = tri_from_center(pts[i],1,i,1)
+        if not color_flag: #display colors!
+            #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
+            # hue_modifier = LaserTracker.upperRange[0]
+            color = hsv2rgb((i)/360,1,1)
+
+            cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
+        else:
+            cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
+    return frame
+
+
+# if dbg and i ==1:
+#     if LaserTracker.dirDeque:
+#         dir = (LaserTracker.dirDeque[i]*180)/3.1415
+#         cv2.putText(frame,
+#         "Direction: {:06.2f}, Distance: {:06.2f}".format(dir, LaserTracker.disDeque[i]),
+#         (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+#         0.35, (0, 0, 255), 1)
 def hsv2rgb(h,s,v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+
+
+def tri_from_center(center_pt,height,rotation=0,scale =1):
+    #Generates an equalateral triangle from the center point
+    #Rotation is counterclockwise in degrees
+    x = center_pt[0]
+    y = center_pt[1]
+    center_pt = (x,y)
+    dx = (height)/np.sqrt(3) #x_distance for bottom two points
+    dy = height/3 #the y distance for bottom two points
+    #(top)(bot left)(bot right)
+    pts = np.array([[x,y+height],[x-dx,y-dy],[x+dx,y- dy]],np.int32)
+    print("center: ",center_pt)
+    if rotation >0:
+        # rotation = -rotation
+        ones = np.ones(shape=(len(pts), 1))
+        pts_ones = np.hstack([pts, ones])
+
+        rot_mat = cv2.getRotationMatrix2D(center_pt, rotation, scale)
+        rot_pts = rot_mat.dot(pts_ones.T).T
+        pts = np.array(rot_pts,np.int32)
+    return pts
