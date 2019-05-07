@@ -21,6 +21,7 @@ class LaserTracker:
         self.trackerStatus = False #initally there is no tracker running
         self.onScreen = False #Tell us if the laser is currently detected
         self.ptsDeque = deque() #empty list for tracked points
+        self.polygonDeque = deque() #list of drawn shapes
         self.disDeque = deque() #empty list for tracked velocity
         self.dirDeque = deque() #empty list for tracked direciton
         self.lostTrackCounter = -1; #initialize the number of times we've lost it

@@ -1,16 +1,12 @@
 import cv2
 import numpy as np
 import colorsys
+from collections import deque
 
-def draw_tracking_reticle(frame,LaserTracker):
+def draw_tracking_reticle(frame,window,LaserTracker):
     #Function draws what the computer is tracking
     cv2.circle(frame, LaserTracker.center, 10, (0, 0, 255), 5)
-    return frame
-
-def draw_canvas_circle(frame,LaserTracker,color):
-    cv2.circle(frame, LaserTracker.center, 5, color, -1)
-    return frame
-
+    cv2.imshow(window, frame)
 
 def draw_trail_simple(frame, LaserTracker, color):
     if len(LaserTracker.ptsDeque)>2:
@@ -19,7 +15,7 @@ def draw_trail_simple(frame, LaserTracker, color):
     return frame
 
 #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
+def draw_contrails(frame,window,pts,color,tail_length=255,dbg=0):
     height = frame.shape[0]
     width = frame.shape[1]
 
@@ -31,6 +27,8 @@ def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
     #if color = (0,0,0) we attempt a rainbow
     color_flag = 0
 
+    if tail_length> 0:
+        frame = np.zeros((height, width), dtype=np.uint8)
     #Iterate through the list of tracked points:
     for i in range(1, tail_length):
 		# if either of the tracked points are None, ignore
@@ -40,22 +38,28 @@ def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
 		# draw the connecting lines
         thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
 
-        if not color_flag: #display colors!
+        if color_flag: #display colors!
             #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
             cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
         else: #solid color
             cv2.line(frame, pts[i - 1], pts[i], color, thickness)
-    return frame
+    cv2.imshow(window, frame)
 
 
-def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
+def draw_rotating_triangles(frame,window,pts,polygon_list, color = (0,255,0),
+tail_length=255, dbg=0):
+    '''
+    Points are the center points of the triangle to be drawn
+    Count is the running iteration count of the program -1 means that no
+    staicking will occur
+    tail_length is the length of the desired tail
+    tail_stack is the amount of frames to stack up giving the blur effect
+    '''
     height = frame.shape[0]
     width = frame.shape[1]
-    #blackout the canvas:
 
-    tail_length = len(pts)
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
         #set the tail length to the number of points we have:
@@ -64,25 +68,32 @@ def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
     #if color = (0,0,0) we attempt a rainbow
     color_flag = 1
 
-    #if we do not want infinite tails:
-    if tail_length> 0:
-        frame = np.zeros((height, width), dtype=np.uint8)
+    # clear_frame(frame)
 
+
+    #we add one for the one that will be erased
     for i in range(1, tail_length):
-		# if either of the tracked points are None, ignore
-        if pts[i - 1] is None or pts[i] is None or pts[i] ==0:
+        if pts[i] is None:
             continue
         tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
-        if not color_flag: #display colors!
+        if color_flag: #display colors!
             #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
-            cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
+            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
+            #add triangle points to the returned list
+            polygon_list.appendleft(tri_pts)
         else:
-            print("here")
-            cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
+            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
+            polygon_list.appendleft(tri_pts)
 
-    return frame
+
+        if tail_length > 0 and i > int(tail_length/2):
+            cv2.polylines(frame,[tri_pts],True,(0,0,0),2,lineType=cv2.LINE_AA)
+    # cv2.waitKey()
+
+    cv2.imshow(window, frame)
+
 
 
 def hsv2rgb(h,s,v):
@@ -108,3 +119,6 @@ def tri_from_center(center_pt,height,rotation=0,scale =1):
         rot_pts = rot_mat.dot(pts_ones.T).T
         pts = np.array(rot_pts,np.int32)
     return pts
+
+def clear_frame(frame):
+    cv2.rectangle(frame,(0,0), (frame.shape[1],frame.shape[0]), 0,-1)

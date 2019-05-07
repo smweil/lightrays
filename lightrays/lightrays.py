@@ -31,13 +31,14 @@ red_upperVideo = (11,144,255)
 blue_laser = TrackTools.LaserTracker(blue_lower,blue_upper,50)
 green_laser = TrackTools.LaserTracker(green_lower,green_upper,255)
 red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
+# red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
 
 
-video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
-# video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+# video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
 
 fps = FPS().start()
+
 
 #Main loop:
 while(1):
@@ -60,30 +61,25 @@ while(1):
 
     if red_laser.onScreen:
         # canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
-        # (0,0,0),100,0)
+        # (0,255,0),100,0)
 
-        canvas_image = DrawTools.draw_rotating_triangles(canvas_image, red_laser.ptsDeque,
-        (0,255,0),100,dbg = 0)
+
+        # canvas_image = np.zeros(canvas_size, dtype=np.uint8)
+        DrawTools.draw_rotating_triangles(canvas_image, canvas_window,red_laser.ptsDeque,
+        red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
         # canvas_image = DrawTools.draw_trail_simple(canvas_image, red_laser,
         # (0,255,0))
 
         # frame = DrawTools.draw_tracking_reticle(frame,red_laser)
 
-    # if not red_laser.onScreen and red_laser.lostTrackCounter > 100:
-    #     canvas_image = np.zeros(canvas_size, dtype=np.uint8)
-
-
-
     # if green_laser.onScreen:
     #     frame = DrawTools.draw_tracking_reticle(frame,green_laser)
     #     canvas_image = DrawTools.draw_canvas_circle(canvas_image, green_laser, (255, 0, 0))
 
-    cv2.imshow(camera_window, frame)
-    cv2.imshow(canvas_window, canvas_image)
     fps.update()
-
 fps.stop()
+
 
 print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
@@ -93,4 +89,5 @@ print("[INFO] Lost Track: {:.2f}".format(red_laser.lostTrackCounter))
 if ret == 1:
     video_stream.stop()
 
+cv2.waitKey()
 cv2.destroyAllWindows()
