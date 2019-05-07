@@ -7,7 +7,16 @@ from collections import deque
 
 #This class will handle the detection and tracking of the laser
 class LaserTracker:
-    def __init__(self,lowerRange,upperRange,deque_buffer): #upper and lower HSV values
+    def __init__(self,lowerRange,upperRange,reset_trigger = 100):
+        '''upper and lower HSV values
+
+        reset_trigger is the amount of frames the laser has not been detected
+        before it resets the canvas and the trails
+
+        if reset_counter=0 the trails never disappear and the
+        canvas doesn't get cleared of the trail.
+
+        '''
         self.upperRange = upperRange
         self.lowerRange = lowerRange
         self.trackerStatus = False #initally there is no tracker running
@@ -16,6 +25,8 @@ class LaserTracker:
         self.disDeque = deque() #empty list for tracked velocity
         self.dirDeque = deque() #empty list for tracked direciton
         self.lostTrackCounter = -1; #initialize the number of times we've lost it
+        self.reset_trigger = reset_trigger
+
     def detect(self, frame): #initial detection of the laser contour
         #Should be resized from the source:
         # frame = imutils.resize(frame, width=500) #resize the frame
@@ -96,7 +107,7 @@ class LaserTracker:
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2)) #x coord is xmin+width/2
                 self.radius = bbox[2]/2
                 self.ptsDeque.appendleft(self.center) #add points to list
-                self.calc_direction_speed(self.ptsDeque)
+                # self.calc_direction_speed(self.ptsDeque)
 
             else :
                 self.onScreen = False
@@ -112,12 +123,21 @@ class LaserTracker:
 
             if self.center: #if we have detected the object
                 self.initialize_tracker(self.center,self.radius,frame)  #initialize the tracker
+                self.lostTrackCounter = 0 #reset the counter
+
+        if self.reset_trigger !=0 and self.lostTrackCounter > self.reset_trigger:
+            self.reset()
+            print("resetting")
+            frame = np.zeros(frame.shape, dtype=np.uint8)
 
     #Takes in a deque and calculates speed and direction of the pointer
     def calc_direction_speed(self, pts):
-        # if pts[i - 10] is None or pts[i] is None: #do we have 10 pts
-        #     continue
-        dX = pts[1][0] - pts[0][0]
-        dY = pts[1][1] - pts[0][1]
-        self.dirDeque.appendleft(math.atan2(dY,dX))
-        self.disDeque.appendleft(math.sqrt((dY*dY)+(dX*dX)))
+        if pts[1]:
+            dX = pts[1][0] - pts[0][0]
+            dY = pts[1][1] - pts[0][1]
+            self.dirDeque.appendleft(math.atan2(dY,dX))
+            self.disDeque.appendleft(math.sqrt((dY*dY)+(dX*dX)))
+
+    def reset(self):
+        self.ptsDeque = deque() #empty list for tracked points
+        self.lostTrackCounter= 0
