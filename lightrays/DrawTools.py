@@ -18,19 +18,20 @@ def draw_trail_simple(frame, LaserTracker, color):
                  color, 5)
     return frame
 
-#from:https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+#Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
 def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
     height = frame.shape[0]
     width = frame.shape[1]
-    #blackout the canvas:
-    # frame = np.zeros((height, width), dtype=np.uint8)
+
     #check if the buffer is smaller than the number of points:
+    #I.e. the very beginning
     if tail_length > len(pts):
         tail_length = len(pts)
 
     #if color = (0,0,0) we attempt a rainbow
     color_flag = 0
 
+    #Iterate through the list of tracked points:
     for i in range(1, tail_length):
 		# if either of the tracked points are None, ignore
         if pts[i - 1] is None or pts[i] is None:
@@ -44,7 +45,7 @@ def draw_contrails(frame,pts,color,tail_length=255,dbg=0):
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
             cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
-        else:
+        else: #solid color
             cv2.line(frame, pts[i - 1], pts[i], color, thickness)
     return frame
 
@@ -53,7 +54,7 @@ def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
     height = frame.shape[0]
     width = frame.shape[1]
     #blackout the canvas:
-    # frame = np.zeros((height, width), dtype=np.uint8)
+
     tail_length = len(pts)
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
@@ -61,14 +62,16 @@ def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
         tail_length = len(pts)
 
     #if color = (0,0,0) we attempt a rainbow
-    color_flag = 0
-    
+    color_flag = 1
+
+    #if we do not want infinite tails:
+    if tail_length> 0:
+        frame = np.zeros((height, width), dtype=np.uint8)
+
     for i in range(1, tail_length):
 		# if either of the tracked points are None, ignore
         if pts[i - 1] is None or pts[i] is None or pts[i] ==0:
             continue
-		# otherwise, compute the thickness of the line and draw
-        # thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
         tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
         if not color_flag: #display colors!
             #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
@@ -76,6 +79,7 @@ def draw_rotating_triangles(frame,pts,color,tail_length=255,dbg=0):
             color = hsv2rgb((i)/360,1,1)
             cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
         else:
+            print("here")
             cv2.polylines(frame,[tri_pts],True,color,lineType=cv2.LINE_AA)
 
     return frame

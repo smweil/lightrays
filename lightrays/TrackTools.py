@@ -13,8 +13,7 @@ class LaserTracker:
         reset_trigger is the amount of frames the laser has not been detected
         before it resets the canvas and the trails
 
-        if reset_counter=0 the trails never disappear and the
-        canvas doesn't get cleared of the trail.
+        if reset_counter=0 the trails never disappear.
 
         '''
         self.upperRange = upperRange
@@ -38,25 +37,22 @@ class LaserTracker:
         mask = cv2.erode(mask, None, iterations=2)
         mask = cv2.dilate(mask, None, iterations=2)
 
-
+        #Find the contours:
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
+
         center = None
         radius = None
         # only proceed if at least one contour was found
         if len(cnts) > 0:
             # find the largest contour in the mask, then use
-            # it to compute the minimum enclosing circle and
-            # centroid
+            # it to compute the minimum enclosing circle and centroid
             c = max(cnts, key=cv2.contourArea)
             ((self.x, self.y), radius) = cv2.minEnclosingCircle(c)
             center = (int(self.x), int(self.y)) #convert to pixels
 
-            #This may be unecessary since it is a dot:
-            # M = cv2.moments(c)
-            # center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-
+            #We detected a contour so the laser is onscreen
             self.onScreen = True
             self.ptsDeque.appendleft(center) #add points to list
 
@@ -71,13 +67,9 @@ class LaserTracker:
         self.radius = radius
 
     def initialize_tracker(self,center,radius,frame):
-        tracker_types = ['BOOSTING', 'MIL','KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE', 'CSRT']
-        tracker_type = tracker_types[2]
+        tracker_types = ['KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE']
+        tracker_type = tracker_types[0]
 
-        if tracker_type == 'BOOSTING':
-            tracker = cv2.TrackerBoosting_create()
-        if tracker_type == 'MIL':
-            tracker = cv2.TrackerMIL_create()
         if tracker_type == 'KCF':
             tracker = cv2.TrackerKCF_create()
         if tracker_type == 'TLD':
@@ -88,11 +80,10 @@ class LaserTracker:
             tracker = cv2.TrackerGOTURN_create()
         if tracker_type == 'MOSSE':
             tracker = cv2.TrackerMOSSE_create()
-        if tracker_type == "CSRT":
-            tracker = cv2.TrackerCSRT_create()
 
         #Compute inital bounding box with center rand radius:
-        bbox = (center[0]-radius, center[1]-radius, 2.5*radius, 2.5*radius) #(xmin,ymin,boxwidth,boxheight)
+        #(xmin,ymin,boxwidth,boxheight)
+        bbox = (center[0]-radius, center[1]-radius, 2.5*radius, 2.5*radius)
 
         # Initialize tracker with first frame and bounding box
         self.trackerStatus = tracker.init(frame, bbox)
@@ -102,32 +93,39 @@ class LaserTracker:
             # Update tracker
             self.trackerStatus, bbox = self.tracker.update(frame)
             if self.trackerStatus:
-                # Tracking success
                 self.onScreen = True
-                self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2)) #x coord is xmin+width/2
+                #x coord is xmin+width/2
+                self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2))
                 self.radius = bbox[2]/2
-                self.ptsDeque.appendleft(self.center) #add points to list
-                # self.calc_direction_speed(self.ptsDeque)
+                #add points to list
+                self.ptsDeque.appendleft(self.center)
 
+                #calculate the speed and direction of the track:
+                #self.calc_direction_speed(self.ptsDeque)
             else :
+                #We have lost the tracker:
                 self.onScreen = False
 
     #This is the "main" function. It will detect and initiate the tracker
     #and re-detect if the tracker becomes inactive
     def run_full_detection(self,frame):
-        if self.trackerStatus: #if the tracker is working
+        if self.trackerStatus:
+            #if the tracker is working update the tracker
             self.update_tracker(frame)
         else:
-            self.detect(frame) #run the detector if the tracker isn't working
-            self.lostTrackCounter +=1#increment the counter
+            #if the tracker failed, redetect the contour
+            self.detect(frame)
+            self.lostTrackCounter +=1
 
             if self.center: #if we have detected the object
                 self.initialize_tracker(self.center,self.radius,frame)  #initialize the tracker
                 self.lostTrackCounter = 0 #reset the counter
 
+        #If we have lost the tracker for longer than the reset_trigger
+        #I.e. the laser is off, reset the trails
         if self.reset_trigger !=0 and self.lostTrackCounter > self.reset_trigger:
             self.reset()
-            print("resetting")
+
             frame = np.zeros(frame.shape, dtype=np.uint8)
 
     #Takes in a deque and calculates speed and direction of the pointer

@@ -31,7 +31,7 @@ red_upperVideo = (11,144,255)
 blue_laser = TrackTools.LaserTracker(blue_lower,blue_upper,50)
 green_laser = TrackTools.LaserTracker(green_lower,green_upper,255)
 red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,0)
+red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
 
 
 video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
@@ -45,8 +45,11 @@ while(1):
     ret, frame = video_stream.read()
 
     #Detect keyboard inputs:
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    key = cv2.waitKey(1)
+    if key == ord("q"):
         break
+    elif key == ord("c"):
+        canvas_image = np.zeros(canvas_size, dtype=np.uint8)
 
     #Detect where the laser is:
     if ret == True:
@@ -56,20 +59,19 @@ while(1):
         break
 
     if red_laser.onScreen:
+        # canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
+        # (0,0,0),100,0)
 
-        canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
-        (0,0,0),100,0)
-
-        # canvas_image = DrawTools.draw_rotating_triangles(canvas_image, red_laser.ptsDeque,
-        # (0,0,0),tail_length = 100,dbg = 0)
+        canvas_image = DrawTools.draw_rotating_triangles(canvas_image, red_laser.ptsDeque,
+        (0,255,0),100,dbg = 0)
 
         # canvas_image = DrawTools.draw_trail_simple(canvas_image, red_laser,
         # (0,255,0))
 
-        frame = DrawTools.draw_tracking_reticle(frame,red_laser)
+        # frame = DrawTools.draw_tracking_reticle(frame,red_laser)
 
-    if not red_laser.onScreen and red_laser.lostTrackCounter > 100:
-        canvas_image = np.zeros(canvas_size, dtype=np.uint8)
+    # if not red_laser.onScreen and red_laser.lostTrackCounter > 100:
+    #     canvas_image = np.zeros(canvas_size, dtype=np.uint8)
 
 
 
