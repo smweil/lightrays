@@ -22,8 +22,6 @@ class LaserTracker:
         self.onScreen = False #Tell us if the laser is currently detected
         self.ptsDeque = deque() #empty list for tracked points
         self.polygonDeque = deque() #list of drawn shapes
-        self.disDeque = deque() #empty list for tracked velocity
-        self.dirDeque = deque() #empty list for tracked direciton
         self.lostTrackCounter = -1; #initialize the number of times we've lost it
         self.reset_trigger = reset_trigger
 
@@ -55,11 +53,7 @@ class LaserTracker:
 
             #We detected a contour so the laser is onscreen
             self.onScreen = True
-            self.ptsDeque.appendleft(center) #add points to list
-
-            #need to keep them the same length (this must change later)
-            self.disDeque.appendleft(-1) #add points to list
-            self.dirDeque.appendleft(-1) #add points to list
+            self.ptsDeque.appendleft(center) #add points to display
 
         else: #nothing detected
             self.onScren = False
@@ -100,9 +94,6 @@ class LaserTracker:
                 self.radius = bbox[2]/2
                 #add points to list
                 self.ptsDeque.appendleft(self.center)
-
-                #calculate the speed and direction of the track:
-                #self.calc_direction_speed(self.ptsDeque)
             else :
                 #We have lost the tracker:
                 self.onScreen = False
@@ -128,14 +119,6 @@ class LaserTracker:
             self.reset()
 
             frame = np.zeros(frame.shape, dtype=np.uint8)
-
-    #Takes in a deque and calculates speed and direction of the pointer
-    def calc_direction_speed(self, pts):
-        if pts[1]:
-            dX = pts[1][0] - pts[0][0]
-            dY = pts[1][1] - pts[0][1]
-            self.dirDeque.appendleft(math.atan2(dY,dX))
-            self.disDeque.appendleft(math.sqrt((dY*dY)+(dX*dX)))
 
     def reset(self):
         self.ptsDeque = deque() #empty list for tracked points

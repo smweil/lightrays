@@ -4,42 +4,39 @@ import imutils
 import CamTools
 import TrackTools
 import DrawTools
-
 from imutils.video import FPS
 
 # Windows names
 camera_window = "Computer Vision:"
 canvas_window = "Canvas:"
 
+#This will have to be a autodetect stretch function of some sort:
 canvas_width = 500
-canvas_size = canvas_width, canvas_width, 3
+canvas_height = 500
+canvas_size = canvas_width, canvas_height, 3
 canvas_image = np.zeros(canvas_size, dtype=np.uint8)
 
-#redLaser:
+#Detection boundaries in HSV:
 red_lower = (170,0,208)
 red_upper = (255,255,255)
-
 blue_lower = (105, 133, 88)
 blue_upper = (142, 255, 255)
 green_lower= (0, 180, 26)
 green_upper = (13, 255, 255)
-
 red_lowerVideo = (0,110,84)
 red_upperVideo = (11,144,255)
 
-
+#Detection objects:
 blue_laser = TrackTools.LaserTracker(blue_lower,blue_upper,50)
 green_laser = TrackTools.LaserTracker(green_lower,green_upper,255)
-red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
-# red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
+# red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
+red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
 
-
-# video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
-video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+#Initialize video stream
+video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+# video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
 
 fps = FPS().start()
-
-
 #Main loop:
 while(1):
     #Reload the new frames
@@ -51,6 +48,7 @@ while(1):
         break
     elif key == ord("c"):
         canvas_image = np.zeros(canvas_size, dtype=np.uint8)
+        cv2.imshow(canvas_window, canvas_image)
 
     #Detect where the laser is:
     if ret == True:
@@ -63,20 +61,23 @@ while(1):
         # canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
         # (0,255,0),100,0)
 
+        # DrawTools.draw_rotating_triangles(canvas_image, canvas_window,red_laser.ptsDeque,
+        # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
-        # canvas_image = np.zeros(canvas_size, dtype=np.uint8)
-        DrawTools.draw_rotating_triangles(canvas_image, canvas_window,red_laser.ptsDeque,
-        red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
+        DrawTools.draw_rotating_triangles_interp(canvas_image, canvas_window,red_laser.ptsDeque,
+        red_laser.polygonDeque,0,tail_length=100,dbg = 0)
 
-        # canvas_image = DrawTools.draw_trail_simple(canvas_image, red_laser,
-        # (0,255,0))
+        # DrawTools.draw_rotating_tri_fractals(canvas_image, canvas_window,red_laser.ptsDeque,
+        # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
-        # frame = DrawTools.draw_tracking_reticle(frame,red_laser)
+
+        DrawTools.draw_tracking_reticle(frame,camera_window,red_laser)
 
     # if green_laser.onScreen:
     #     frame = DrawTools.draw_tracking_reticle(frame,green_laser)
     #     canvas_image = DrawTools.draw_canvas_circle(canvas_image, green_laser, (255, 0, 0))
 
+    cv2.imshow(camera_window, frame)
     fps.update()
 fps.stop()
 

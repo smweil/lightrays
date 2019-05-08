@@ -1,24 +1,15 @@
 import numpy as np
 import cv2
 import DrawTools
+from collections import deque
 
-listA = [0]
-listB = listA
-listB.append(1)
-print(listA)
+pts= deque()
+pts = [1, 5]
+new_pts = [2, 3, 4]
+pts[1:1] = new_pts
+print(pts)
 
-# center = (50,50)
-# height = 20
-#
-#
-# img = np.zeros((100,100,3), np.uint8)
-#
-# pts = DrawTools.tri_from_center(center,height,270,1)
-#
-#
-# cv2.polylines(img,[pts],True,(0,255,255),lineType=cv2.LINE_AA)
-# cv2.imshow("test",img)
-# cv2.waitKey(0) # waits until a key is pressed
-# cv2.destroyAllWindows() # destroys the window showing image
+[pts.insert(1,pt) for pt in reversed(new_pts)]
 
-# print(os.getcwd())
+
+print(pts)
