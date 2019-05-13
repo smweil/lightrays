@@ -156,9 +156,6 @@ def distance_interp(a,b,threshold,density):
         interpolated_pts_list = list(zip(x,yinterp))
     return interpolated_pts_list
 
-
-
-
 def hsv2rgb(h,s,v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
 

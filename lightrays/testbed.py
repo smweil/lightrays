@@ -1,15 +1,17 @@
-import numpy as np
 import cv2
-import DrawTools
-from collections import deque
-
-pts= deque()
-pts = [1, 5]
-new_pts = [2, 3, 4]
-pts[1:1] = new_pts
-print(pts)
-
-[pts.insert(1,pt) for pt in reversed(new_pts)]
+import numpy as np
 
 
-print(pts)
+test =[1,2,3,5]
+if 6 in test:
+    print("yay")
+# cap = cv2.VideoCapture(0)
+# cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
+# while(True):
+#     ret, frame = cap.read()
+#     cv2.imshow('frame',frame)
+#     key=cv2.waitKey(0) & 0xFF
+#     print(key)
+#     if key == ord('q'):
+#          break
+# cv2.destroyAllWindows()

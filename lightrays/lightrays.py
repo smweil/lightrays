@@ -4,37 +4,48 @@ import imutils
 import CamTools
 import TrackTools
 import DrawTools
+import CanvasTools
+import config
 from imutils.video import FPS
 
 # Windows names
 camera_window = "Computer Vision:"
-canvas_window = "Canvas:"
+canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 #This will have to be a autodetect stretch function of some sort:
-canvas_width = 500
-canvas_height = 500
-canvas_size = canvas_width, canvas_height, 3
-canvas_image = np.zeros(canvas_size, dtype=np.uint8)
+# canvas_width = 640
+# canvas_height = 480
+# canvas_size = canvas_width, canvas_height, 3
+# canvas.frame = np.zeros(canvas_size, dtype=np.uint8)
 
-#Detection boundaries in HSV:
-red_lower = (170,0,208)
-red_upper = (255,255,255)
-blue_lower = (105, 133, 88)
-blue_upper = (142, 255, 255)
-green_lower= (0, 180, 26)
-green_upper = (13, 255, 255)
-red_lowerVideo = (0,110,84)
-red_upperVideo = (11,144,255)
 
-#Detection objects:
-blue_laser = TrackTools.LaserTracker(blue_lower,blue_upper,50)
-green_laser = TrackTools.LaserTracker(green_lower,green_upper,255)
-# red_laser = TrackTools.LaserTracker(red_lowerVideo,red_upperVideo,255)
+# red_lower = (config.laser_settings['red_lower'])
+# red_upper = (config.laser_settings['red_upper'])
+# video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+
+
+red_lower = (config.laser_settings['red_lower_video'])
+red_upper = (config.laser_settings['red_upper_video'])
+video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+
 red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
 
-#Initialize video stream
-video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
-# video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+
+ret, frame = video_stream.read()
+setup_flag = 1
+while setup_flag:
+    #Setup script:
+    key = cv2.waitKey(1) & 0xFF
+    if key in [ord("a"),ord("d"), ord("w"),ord("s"),ord("q"),ord("e")]:
+        canvas.resize_image(key)
+    if key in [ord("j"), ord("i"), ord("k"), ord("l"),ord("u"), ord("o")]:
+        canvas.resize_window(key)
+    elif key == 13: #Enter key
+        setup_flag =0
+
+
+
+
 
 fps = FPS().start()
 #Main loop:
@@ -47,8 +58,9 @@ while(1):
     if key == ord("q"):
         break
     elif key == ord("c"):
-        canvas_image = np.zeros(canvas_size, dtype=np.uint8)
-        cv2.imshow(canvas_window, canvas_image)
+        #canvas.clear_image1()
+        canvas.frame = np.zeros(canvas_size, dtype=np.uint8)
+        cv2.imshow(canvas.window_name, canvas.frame)
 
     #Detect where the laser is:
     if ret == True:
@@ -58,16 +70,16 @@ while(1):
         break
 
     if red_laser.onScreen:
-        # canvas_image =DrawTools.draw_contrails(canvas_image, red_laser.ptsDeque,
+        # canvas.frame =DrawTools.draw_contrails(canvas.frame, red_laser.ptsDeque,
         # (0,255,0),100,0)
 
-        # DrawTools.draw_rotating_triangles(canvas_image, canvas_window,red_laser.ptsDeque,
+        # DrawTools.draw_rotating_triangles(canvas.frame, canvas.window_name,red_laser.ptsDeque,
         # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
-        DrawTools.draw_rotating_triangles_interp(canvas_image, canvas_window,red_laser.ptsDeque,
+        DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
         red_laser.polygonDeque,0,tail_length=100,dbg = 0)
 
-        # DrawTools.draw_rotating_tri_fractals(canvas_image, canvas_window,red_laser.ptsDeque,
+        # DrawTools.draw_rotating_tri_fractals(canvas.frame, canvas.window_name,red_laser.ptsDeque,
         # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
 
@@ -75,7 +87,7 @@ while(1):
 
     # if green_laser.onScreen:
     #     frame = DrawTools.draw_tracking_reticle(frame,green_laser)
-    #     canvas_image = DrawTools.draw_canvas_circle(canvas_image, green_laser, (255, 0, 0))
+    #     canvas.frame = DrawTools.draw_canvas_circle(canvas.frame, green_laser, (255, 0, 0))
 
     cv2.imshow(camera_window, frame)
     fps.update()
@@ -89,6 +101,4 @@ print("[INFO] Lost Track: {:.2f}".format(red_laser.lostTrackCounter))
 #Housekeeping
 if ret == 1:
     video_stream.stop()
-
-cv2.waitKey()
 cv2.destroyAllWindows()

@@ -1,11 +1,11 @@
 def draw_rotating_tri_fractals(frame,window,pts,polygon_list, color = (0,255,0),
 tail_length=255, dbg=0):
     '''
-    Points are the center points of the triangle to be drawn
-    Count is the running iteration count of the program -1 means that no
-    staicking will occur
-    tail_length is the length of the desired tail
-    tail_stack is the amount of frames to stack up giving the blur effect
+    - Points are the center points of the triangle to be drawn
+    - Count is the running iteration count of the program -1 means that no
+      staicking will occur
+    - tail_length is the length of the desired tail
+    - tail_stack is the amount of frames to stack up giving the blur effect
     '''
     height = frame.shape[0]
     width = frame.shape[1]
