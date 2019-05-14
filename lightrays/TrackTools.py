@@ -7,7 +7,7 @@ from collections import deque
 
 #This class will handle the detection and tracking of the laser
 class LaserTracker:
-    def __init__(self,lowerRange,upperRange,scale_factor,reset_trigger = 100):
+    def __init__(self,lowerRange,upperRange,scale_factors,reset_trigger = 100):
         '''upper and lower HSV values
 
         reset_trigger is the amount of frames the laser has not been detected
@@ -16,7 +16,7 @@ class LaserTracker:
         if reset_counter=0 the trails never disappear.
 
         '''
-        self.scale_factor = scale_factor #the difference in size between cam and canvas
+        self.scale_factors = scale_factors #the difference in size between cam and canvas
         self.upperRange = upperRange
         self.lowerRange = lowerRange
         self.trackerStatus = False #initally there is no tracker running
@@ -56,15 +56,15 @@ class LaserTracker:
             self.onScreen = True
 
             #scale the points based on the difference between the cam and the canvas:
-            scaled_center = (center[0]*self.scale_factor, center[1]*self.scale_factor)
+            scaled_center = (center[0]*self.scale_factors[0],
+                            center[1]*self.scale_factors[1])
             self.ptsDeque.appendleft(scaled_center) #add points to display
 
         else: #nothing detected
             self.onScren = False
-
         self.center = center
         self.radius = radius
-
+        
     def initialize_tracker(self,center,radius,frame):
         tracker_types = ['KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE']
         tracker_type = tracker_types[0]
@@ -97,8 +97,8 @@ class LaserTracker:
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2))
                 self.radius = bbox[2]/2
                 #add points to list
-                scaled_center = (self.center[0]*self.scale_factor,
-                                self.center[1]*self.scale_factor)
+                scaled_center = (self.center[0]*self.scale_factors[0],
+                                self.center[1]*self.scale_factors[1])
                 self.ptsDeque.appendleft(scaled_center)
             else :
                 #We have lost the tracker:

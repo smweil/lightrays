@@ -8,6 +8,19 @@ def draw_tracking_reticle(frame,window,LaserTracker):
     #Function draws what the computer is tracking
     cv2.circle(frame, LaserTracker.center, 10, (0, 0, 255), 5)
     cv2.imshow(window, frame)
+    print("laser: ",LaserTracker.center)
+
+def draw_simple_circle(frame,window,points):
+    if len(points)>0:
+        x = int(points[0][0])
+        y = int(points[0][1])
+        point = (x,y)
+        print("Canvas Point: ", point)
+        cv2.circle(frame, point, 10, (0, 0, 255), 5)
+        cv2.imshow(window, frame)
+        print("Canvas Point: ", point)
+
+
 
 #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
 def draw_contrails(frame,window,pts,color,tail_length=255,dbg=0):
@@ -68,7 +81,6 @@ tail_length=255, dbg=0):
         if pts[i] is None:
             continue
         #compute distance between this point and the last point for interp:
-
         tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
         if color_flag: #display colors!
             #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)

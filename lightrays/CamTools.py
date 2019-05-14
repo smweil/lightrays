@@ -2,9 +2,15 @@ from threading import Thread, Lock
 import cv2
 #From: https://gist.github.com/allskyee/7749b9318e914ca45eb0a1000a81bf56
 
+def crop_by_bbox(frame,bbox):
+    #crops an image with a bounding box
+    y_height = bbox[1]+bbox[3]
+    x_width = bbox[0]+bbox[2]
+    frame = frame[bbox[1]:(bbox[1]+bbox[3]),bbox[0]:(bbox[0]+bbox[2])]
+    return frame
+
 def draw_setup_text(window_name,frame):
     width, height,_ = frame.shape
-
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame,'Camera Setup',(int(width/3),30),
      font, 1,(255,255,255),2,cv2.LINE_AA)

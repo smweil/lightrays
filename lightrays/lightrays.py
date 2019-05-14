@@ -55,19 +55,20 @@ while setup_flag:
         if key ==ord("s"):
             camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
             setup_flag =0
-
-
         if camera_roi:
-            camera_frame = camera_frame[camera_roi[1]:(camera_roi[1]+camera_roi[3]),
-                                        camera_roi[0]:(camera_roi[0]+camera_roi[2])]
+            camera_frame = CamTools.crop_by_bbox(camera_frame,camera_roi)
         cv2.imshow(camera_window, camera_frame)
 
 
 #Width of the canvas/width of the camera
-scale_factor = canvas.frame_width/(camera_roi[2]-camera_roi[0])
-print("Scaling: ",scale_factor)
+scale_width = canvas.frame_width/(camera_roi[2]-camera_roi[0])
+scale_height = canvas.frame_height/(camera_roi[3]-camera_roi[1])
 
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factor,100)
+scale_factors = (scale_width, scale_height)
+print("Scaling width: ",scale_width)
+print("Scaling height: ",scale_height)
+
+red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
 
 
 canvas.clear_image()
@@ -77,10 +78,7 @@ while(1):
     #Reload the new frame and crop image
     ret, camera_frame = video_stream.read()
     if ret and camera_roi: #crop the frame
-        #y:y_height, x:x_width
-        y_height = camera_roi[1]+camera_roi[3]
-        x_width = camera_roi[0]+camera_roi[2]
-        camera_frame = camera_frame[camera_roi[1]:y_height,camera_roi[0]:x_width]
+        camera_frame = CamTools.crop_by_bbox(camera_frame,camera_roi)
 
         # cv2.imshow(camera_window, camera_frame)
         # cv2.waitKey()
@@ -91,6 +89,7 @@ while(1):
         break
     elif key == ord("c"):
         canvas.clear_image()
+        print("CLEARED")
 
     #Detect where the laser is:
     if ret == True:
@@ -103,15 +102,10 @@ while(1):
         # canvas.frame =DrawTools.draw_contrails(canvas.frame, red_laser.ptsDeque,
         # (0,255,0),100,0)
 
-        # DrawTools.draw_rotating_triangles(canvas.frame, canvas.window_name,red_laser.ptsDeque,
-        # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
+        DrawTools.draw_simple_circle(canvas.frame,canvas.window_name,red_laser.ptsDeque)
 
-        DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
-        red_laser.polygonDeque,0,tail_length=100,dbg = 0)
-
-        # DrawTools.draw_rotating_tri_fractals(canvas.frame, canvas.window_name,red_laser.ptsDeque,
-        # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
-
+        # DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
+        # red_laser.polygonDeque,0,tail_length=100,dbg = 0)
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
