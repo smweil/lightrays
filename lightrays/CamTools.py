@@ -3,9 +3,7 @@ import cv2
 #From: https://gist.github.com/allskyee/7749b9318e914ca45eb0a1000a81bf56
 
 def crop_by_bbox(frame,bbox):
-    #crops an image with a bounding box
-    y_height = bbox[1]+bbox[3]
-    x_width = bbox[0]+bbox[2]
+    #crops an image with a bounding box bbox = (xmin, ymin, width, height)
     frame = frame[bbox[1]:(bbox[1]+bbox[3]),bbox[0]:(bbox[0]+bbox[2])]
     return frame
 

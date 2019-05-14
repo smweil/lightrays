@@ -61,12 +61,10 @@ while setup_flag:
 
 
 #Width of the canvas/width of the camera
-scale_width = canvas.frame_width/(camera_roi[2]-camera_roi[0])
-scale_height = canvas.frame_height/(camera_roi[3]-camera_roi[1])
-
+scale_width = canvas.frame_width/camera_roi[2]
+scale_height = canvas.frame_height/camera_roi[3]
 scale_factors = (scale_width, scale_height)
-print("Scaling width: ",scale_width)
-print("Scaling height: ",scale_height)
+
 
 red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
 
@@ -79,9 +77,6 @@ while(1):
     ret, camera_frame = video_stream.read()
     if ret and camera_roi: #crop the frame
         camera_frame = CamTools.crop_by_bbox(camera_frame,camera_roi)
-
-        # cv2.imshow(camera_window, camera_frame)
-        # cv2.waitKey()
 
     #Detect keyboard inputs:
     key = cv2.waitKey(1)

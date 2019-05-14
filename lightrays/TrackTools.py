@@ -13,6 +13,7 @@ class LaserTracker:
         reset_trigger is the amount of frames the laser has not been detected
         before it resets the canvas and the trails
 
+
         if reset_counter=0 the trails never disappear.
 
         '''
@@ -64,7 +65,7 @@ class LaserTracker:
             self.onScren = False
         self.center = center
         self.radius = radius
-        
+
     def initialize_tracker(self,center,radius,frame):
         tracker_types = ['KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE']
         tracker_type = tracker_types[0]
