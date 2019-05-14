@@ -13,14 +13,14 @@ camera_window = "Computer Vision:"
 canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
-video_file = False
-# video_file = './bin/laserwall.mp4' #Set this flag to False if using a webcam
+# video_file = False #Set this flag to False if using a webcam
+video_file = './bin/laserwall.mp4'
 
 
 if video_file:
     red_lower = (config.laser_settings['red_lower_video'])
     red_upper = (config.laser_settings['red_upper_video'])
-    video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+    video_stream = cv2.VideoCapture(video_file)
 else:
     red_lower = (config.laser_settings['red_lower_tv'])
     red_upper = (config.laser_settings['red_upper_tv'])
@@ -47,23 +47,32 @@ while setup_flag:
             cv2.imshow(camera_window, camera_frame)
             setup_flag =2
 
-    #crop the camera to only see the canvas
+    #only stream the setup screen if it's from a webcam:
+    if not video_file:
+        ret, camera_frame = video_stream.read()
+
     if setup_flag ==2:
         key = cv2.waitKey(1) & 0xFF
-        ret, camera_frame = video_stream.read()
         CamTools.draw_setup_text(camera_window,camera_frame)
+
         if key ==ord("s"):
             camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
             setup_flag =0
+        if key == 13: #if enter key is hit first assume no cropping
+            scale_factors = (1,1)
+            setup_flag =0
         if camera_roi:
             camera_frame = CamTools.crop_by_bbox(camera_frame,camera_roi)
+            scale_width = canvas.frame_width/camera_roi[2]
+            scale_height = canvas.frame_height/camera_roi[3]
+            scale_factors = (scale_width, scale_height)
+
         cv2.imshow(camera_window, camera_frame)
 
 
 #Width of the canvas/width of the camera
-scale_width = canvas.frame_width/camera_roi[2]
-scale_height = canvas.frame_height/camera_roi[3]
-scale_factors = (scale_width, scale_height)
+
+
 
 
 red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
@@ -94,13 +103,14 @@ while(1):
         break
 
     if red_laser.onScreen:
-        # canvas.frame =DrawTools.draw_contrails(canvas.frame, red_laser.ptsDeque,
-        # (0,255,0),100,0)
+
+        DrawTools.draw_contrails(canvas.frame,canvas.window_name,
+         red_laser.ptsDeque,color=0,tail_length = 200)
 
         # DrawTools.draw_simple_circle(canvas.frame,canvas.window_name,red_laser.ptsDeque)
 
-        DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
-        red_laser.polygonDeque,0,tail_length=100)
+        # DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,
+        # red_laser.ptsDeque,red_laser.polygonDeque,0,tail_length=100)
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 

@@ -18,40 +18,50 @@ def draw_simple_circle(frame,window,points,color=(0,0,255)):
         cv2.imshow(window, frame)
 
 #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-def draw_contrails(frame,window,pts,color=(0,255,0),tail_length=255):
+def draw_contrails(frame,window,pts,color=0,tail_length=255):
     height = frame.shape[0]
     width = frame.shape[1]
-
+    interp_density = .01 # 1 would be a triangle every pixel
+    interp_distance = 120 #distance between points to trigger interpolated values
+    
     #check if the buffer is smaller than the number of points:
     #I.e. the very beginning
     if tail_length > len(pts):
         tail_length = len(pts)
 
-    #if color = (0,0,0) we attempt a rainbow
-    color_flag = 0
+    if color:
+        color_flag = 0
+    else:
+        color_flag = 1
 
-    if tail_length> 0:
-        frame = np.zeros((height, width), dtype=np.uint8)
     #Iterate through the list of tracked points:
     for i in range(1, tail_length):
 		# if either of the tracked points are None, ignore
         if pts[i - 1] is None or pts[i] is None:
             continue
+
+        interpolated_pts = distance_interp(pts[i],pts[i-1],
+                            interp_distance,interp_density)
+
+        if interpolated_pts:
+        #interpolated_pts returns a list of points only if there is a "gap"
+        #Insert points into the main points list:
+            tail_length += len(interpolated_pts) #extend the loop
+            [pts.insert(i+1,pt) for pt in reversed(interpolated_pts)] #add pts
 		# otherwise, compute the thickness of the line and
 		# draw the connecting lines
         thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
-
         if color_flag: #display colors!
-            #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
             cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
         else: #solid color
             cv2.line(frame, pts[i - 1], pts[i], color, thickness)
+
     cv2.imshow(window, frame)
 
 
-def draw_rotating_triangles(frame,window,pts,polygon_list,color = (0,255,0),
+def draw_rotating_triangles(frame,window,pts,polygon_list,color = 0,
 tail_length=255):
     '''
     Points are the center points of the triangle to be drawn
@@ -69,9 +79,11 @@ tail_length=255):
         tail_length = len(pts)
 
     #if color = (0,0,0) we attempt a rainbow
-    color_flag = 1
+    if color:
+        color_flag = 0
+    else:
+        color_flag = 1
 
-    #we add one for the one that will be erased
     for i in range(1, tail_length):
         if pts[i] is None:
             continue
@@ -102,20 +114,22 @@ tail_length=255):
     function built in to bridge big gaps where the laser is moving quickly
     It is an attempt at smoothing drawing
     '''
+    interp_density = .01 # 1 would be a triangle every pixel
+    interp_distance = 120 #distance between points to trigger interpolated values
+
     height = frame.shape[0]
     width = frame.shape[1]
 
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
         tail_length = len(pts)
+
     #if the user specified a color
     if color:
         color_flag = 0
     else:
         color_flag = 1
 
-    interp_density = .01 # 1 would be a triangle every pixel
-    interp_distance = 120 #distance between points to trigger interpolated values
     i = 0
     while i < tail_length:
         if pts[i] is None:
