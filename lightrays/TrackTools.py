@@ -7,7 +7,7 @@ from collections import deque
 
 #This class will handle the detection and tracking of the laser
 class LaserTracker:
-    def __init__(self,lowerRange,upperRange,reset_trigger = 100):
+    def __init__(self,lowerRange,upperRange,scale_factor,reset_trigger = 100):
         '''upper and lower HSV values
 
         reset_trigger is the amount of frames the laser has not been detected
@@ -16,6 +16,7 @@ class LaserTracker:
         if reset_counter=0 the trails never disappear.
 
         '''
+        self.scale_factor = scale_factor #the difference in size between cam and canvas
         self.upperRange = upperRange
         self.lowerRange = lowerRange
         self.trackerStatus = False #initally there is no tracker running
@@ -53,7 +54,10 @@ class LaserTracker:
 
             #We detected a contour so the laser is onscreen
             self.onScreen = True
-            self.ptsDeque.appendleft(center) #add points to display
+
+            #scale the points based on the difference between the cam and the canvas:
+            scaled_center = (center[0]*self.scale_factor, center[1]*self.scale_factor)
+            self.ptsDeque.appendleft(scaled_center) #add points to display
 
         else: #nothing detected
             self.onScren = False
@@ -93,7 +97,9 @@ class LaserTracker:
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2))
                 self.radius = bbox[2]/2
                 #add points to list
-                self.ptsDeque.appendleft(self.center)
+                scaled_center = (self.center[0]*self.scale_factor,
+                                self.center[1]*self.scale_factor)
+                self.ptsDeque.appendleft(scaled_center)
             else :
                 #We have lost the tracker:
                 self.onScreen = False
@@ -101,6 +107,7 @@ class LaserTracker:
     #This is the "main" function. It will detect and initiate the tracker
     #and re-detect if the tracker becomes inactive
     def run_full_detection(self,frame):
+
         if self.trackerStatus:
             #if the tracker is working update the tracker
             self.update_tracker(frame)

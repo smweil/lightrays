@@ -2,6 +2,25 @@ from threading import Thread, Lock
 import cv2
 #From: https://gist.github.com/allskyee/7749b9318e914ca45eb0a1000a81bf56
 
+def draw_setup_text(window_name,frame):
+    width, height,_ = frame.shape
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame,'Camera Setup',(int(width/3),30),
+     font, 1,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame,'Select Area: S',(0,80), font, 1,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame,'Done: <Enter>',(0,150), font, 1,(255,255,255),2,cv2.LINE_AA)
+
+def select_canvas_area(window_name,frame):
+    '''
+    displays the camera image and asks user to draw a bounding box
+    to define the canvas
+    '''
+    bbox = cv2.selectROI(window_name, frame, fromCenter=False,
+			showCrosshair=True)
+    return bbox
+
+
 class WebcamVideoStream :
     def __init__(self, src = 0, width = 320, height = 240) :
         self.stream = cv2.VideoCapture(src)

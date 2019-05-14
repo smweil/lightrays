@@ -12,60 +12,90 @@ from imutils.video import FPS
 camera_window = "Computer Vision:"
 canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
-#This will have to be a autodetect stretch function of some sort:
-# canvas_width = 640
-# canvas_height = 480
-# canvas_size = canvas_width, canvas_height, 3
-# canvas.frame = np.zeros(canvas_size, dtype=np.uint8)
+
+video_file = False
+# video_file = './bin/laserwall.mp4' #Set this flag to False if using a webcam
 
 
-# red_lower = (config.laser_settings['red_lower'])
-# red_upper = (config.laser_settings['red_upper'])
-# video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+if video_file:
+    red_lower = (config.laser_settings['red_lower_video'])
+    red_upper = (config.laser_settings['red_upper_video'])
+    video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
+else:
+    red_lower = (config.laser_settings['red_lower'])
+    red_upper = (config.laser_settings['red_upper'])
+    video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
 
 
-red_lower = (config.laser_settings['red_lower_video'])
-red_upper = (config.laser_settings['red_upper_video'])
-video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
-
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,100)
 
 
-ret, frame = video_stream.read()
+ret, camera_frame = video_stream.read()
 setup_flag = 1
+camera_roi = None
 while setup_flag:
-    #Setup script:
-    key = cv2.waitKey(1) & 0xFF
-    if key in [ord("a"),ord("d"), ord("w"),ord("s"),ord("q"),ord("e")]:
-        canvas.resize_image(key)
-    if key in [ord("j"), ord("i"), ord("k"), ord("l"),ord("u"), ord("o")]:
-        canvas.resize_window(key)
-    elif key == 13: #Enter key
-        setup_flag =0
+    #Setup Canvas:
+    if setup_flag ==1:
+        key = cv2.waitKey(1) & 0xFF
+        if key in [ord("a"),ord("d"), ord("w"),ord("s"),ord("q"),ord("e")]:
+            canvas.resize_image(key)
+        if key in [ord("j"), ord("i"), ord("k"), ord("l"),ord("u"), ord("o")]:
+            canvas.resize_window(key)
+        if key == ord("f"):
+            canvas.full_screen()
+        elif key == 13: #Enter key move on to camera setup
+            ret, camera_frame = video_stream.read()
+            cv2.imshow(camera_window, camera_frame)
+            setup_flag =2
+
+    #crop the camera to only see the canvas
+    if setup_flag ==2:
+        key = cv2.waitKey(1) & 0xFF
+        ret, camera_frame = video_stream.read()
+        CamTools.draw_setup_text(camera_window,camera_frame)
+        if key ==ord("s"):
+            camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
+            setup_flag =0
 
 
+        if camera_roi:
+            camera_frame = camera_frame[camera_roi[1]:(camera_roi[1]+camera_roi[3]),
+                                        camera_roi[0]:(camera_roi[0]+camera_roi[2])]
+        cv2.imshow(camera_window, camera_frame)
 
 
+#Width of the canvas/width of the camera
+scale_factor = canvas.frame_width/(camera_roi[2]-camera_roi[0])
+print("Scaling: ",scale_factor)
 
+red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factor,100)
+
+
+canvas.clear_image()
 fps = FPS().start()
 #Main loop:
 while(1):
-    #Reload the new frames
-    ret, frame = video_stream.read()
+    #Reload the new frame and crop image
+    ret, camera_frame = video_stream.read()
+    if ret and camera_roi: #crop the frame
+        #y:y_height, x:x_width
+        y_height = camera_roi[1]+camera_roi[3]
+        x_width = camera_roi[0]+camera_roi[2]
+        camera_frame = camera_frame[camera_roi[1]:y_height,camera_roi[0]:x_width]
+
+        # cv2.imshow(camera_window, camera_frame)
+        # cv2.waitKey()
 
     #Detect keyboard inputs:
     key = cv2.waitKey(1)
     if key == ord("q"):
         break
     elif key == ord("c"):
-        #canvas.clear_image1()
-        canvas.frame = np.zeros(canvas_size, dtype=np.uint8)
-        cv2.imshow(canvas.window_name, canvas.frame)
+        canvas.clear_image()
 
     #Detect where the laser is:
     if ret == True:
-        red_laser.run_full_detection(frame)
-        # green_laser.run_full_detection(frame)
+        red_laser.run_full_detection(camera_frame)
+        # green_laser.run_full_detection(camera_frame)
     else:
         break
 
@@ -83,13 +113,13 @@ while(1):
         # red_laser.polygonDeque,(0,255,0),tail_length=100,dbg = 0)
 
 
-        DrawTools.draw_tracking_reticle(frame,camera_window,red_laser)
+        DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
     # if green_laser.onScreen:
-    #     frame = DrawTools.draw_tracking_reticle(frame,green_laser)
+    #     camera_frame = DrawTools.draw_tracking_reticle(camera_frame,green_laser)
     #     canvas.frame = DrawTools.draw_canvas_circle(canvas.frame, green_laser, (255, 0, 0))
 
-    cv2.imshow(camera_window, frame)
+    cv2.imshow(camera_window, camera_frame)
     fps.update()
 fps.stop()
 

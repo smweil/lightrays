@@ -24,11 +24,32 @@ class Canvas:
         self.frame = np.zeros((self.frame_height, self.frame_width, 3), dtype=np.uint8)
 
         #draw border here:
+        self.draw_borders()
+
+        #add target:
+
+
+        cv2.imshow(self.window_name, self.frame)
+
+    def draw_borders(self):
+        center = (int(self.frame_width/2),int(self.frame_height/2))
+        cv2.circle(self.frame,center, 50, (0, 0, 255), 3)
         top_left = (0,0)
         bottom_right = (self.frame_width,self.frame_height)
         cv2.rectangle(self.frame,  top_left, bottom_right, (0, 0, 255), 5)
-        # font = cv2.FONT_HERSHEY_SIMPLEX
-        # cv2.putText(self.frame,'Keys: ASDW | Enter',(int(width/2),int(height/2)), font, 4,(255,255,255),2,cv2.LINE_AA)
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(self.frame,'Canvas Setup',(int(self.frame_width/3),30),
+         font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Resize: Q,E',(0,80), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Fullscreen: F',(0,115), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Done: <Enter>',(0,150), font, 1,(255,255,255),2,cv2.LINE_AA)
+    def full_screen(self):
+        cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+    def clear_image(self):
+        height, width,_= self.frame.shape
+        self.frame= np.ones((height, width, 3), dtype=np.uint8)
         cv2.imshow(self.window_name, self.frame)
 
     def resize_image(self,key):
@@ -56,18 +77,10 @@ class Canvas:
             self.frame_width +=10
             self.frame_height+=int(10*(self.frame_height/self.frame_width))
 
-        top_left = (0,0)
-        bottom_right = (self.frame_width,self.frame_height)
-
         self.frame= cv2.resize(self.frame, (self.frame_width, self.frame_height))
+
         self.clear_image()
-        cv2.rectangle(self.frame,  top_left, bottom_right, (0, 0, 255), 5)
-        cv2.imshow(self.window_name, self.frame)
-
-
-    def clear_image(self):
-        height, width,_= self.frame.shape
-        self.image = np.ones((height, width, 3), dtype=np.uint8)
+        self.draw_borders()
         cv2.imshow(self.window_name, self.frame)
 
     def resize_window(self,key):

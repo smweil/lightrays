@@ -180,5 +180,6 @@ def tri_from_center(center_pt,height,rotation=0,scale =1):
         pts = np.array(rot_pts,np.int32)
     return pts
 
+
 def clear_frame(frame):
     cv2.rectangle(frame,(0,0), (frame.shape[1],frame.shape[0]), 0,-1)
