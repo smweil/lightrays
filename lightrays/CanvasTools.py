@@ -41,9 +41,11 @@ class Canvas:
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(self.frame,'Canvas Setup',(int(self.frame_width/3),30),
          font, 1,(255,255,255),2,cv2.LINE_AA)
-        cv2.putText(self.frame,'Resize: Q,E',(0,80), font, 1,(255,255,255),2,cv2.LINE_AA)
-        cv2.putText(self.frame,'Fullscreen: F',(0,115), font, 1,(255,255,255),2,cv2.LINE_AA)
-        cv2.putText(self.frame,'Done: <Enter>',(0,150), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Resize Image: Q,E',(0,80), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Resize Window: U,O',(0,115), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Fullscreen: F',(0,150), font, 1,(255,255,255),2,cv2.LINE_AA)
+        cv2.putText(self.frame,'Done: <Enter>',(0,185), font, 1,(255,255,255),2,cv2.LINE_AA)
+
     def full_screen(self):
         cv2.setWindowProperty(self.window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
@@ -57,13 +59,13 @@ class Canvas:
         '''
         need to add error checking if exceeds window
         '''
-        if key  == ord("a"):
+        if key  == ord("d"):
             #if self.frame_width<max:
             self.frame_width +=10
         elif key == ord("s"):
             if self.frame_height > 400:
                 self.frame_height -=10
-        elif key == ord("d"):
+        elif key == ord("a"):
             if self.frame_width > 400:
                 self.frame_width -=10
         elif key == ord("w"):
@@ -93,23 +95,23 @@ class Canvas:
         self.window_width = self.window_width
         self.window_height = self.window_height
 
-        if key  == ord("j"):
+        if key  == ord("l"):
             #if self.self.window_width<max:
             self.window_width +=10
         elif key == ord("k"):
             if self.window_height > 400:
                 self.window_height -=10
-        elif key == ord("l"):
+        elif key == ord("j"):
             if self.window_width > 400:
                 self.window_width -=10
         elif key == ord("i"):
             self.window_height +=10
         #Preserve aspect ratios:
-        elif key == ord("e"):
+        elif key == ord("u"):
             if self.window_width > 400:
                 self.window_width -=10
                 self.window_height -=int(10*(self.window_height/self.window_width))
-        elif key == ord("q"):
+        elif key == ord("o"):
             self.window_width +=10
             self.window_height+=int(10*(self.window_height/self.window_width))
 

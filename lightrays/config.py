@@ -13,6 +13,9 @@ laser_settings = {
     'red_lower':(170,0,208),
     'red_upper':(255,255,255),
 
+    'red_lower_tv':(120,0,133),
+    'red_upper_tv':(255,255,255),
+
     'green_lower':(0, 180, 26),
     'green_upper':(13, 255, 255),
 

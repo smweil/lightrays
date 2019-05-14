@@ -8,7 +8,6 @@ def draw_tracking_reticle(frame,window,LaserTracker):
     #Function draws what the computer is tracking
     cv2.circle(frame, LaserTracker.center, 10, (0, 0, 255), 5)
     cv2.imshow(window, frame)
-    print("laser: ",LaserTracker.center)
 
 def draw_simple_circle(frame,window,points,color=(0,0,255)):
     if len(points)>0:
@@ -19,7 +18,7 @@ def draw_simple_circle(frame,window,points,color=(0,0,255)):
         cv2.imshow(window, frame)
 
 #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
-def draw_contrails(frame,window,pts,color,tail_length=255,dbg=0):
+def draw_contrails(frame,window,pts,color=(0,255,0),tail_length=255):
     height = frame.shape[0]
     width = frame.shape[1]
 
@@ -52,8 +51,8 @@ def draw_contrails(frame,window,pts,color,tail_length=255,dbg=0):
     cv2.imshow(window, frame)
 
 
-def draw_rotating_triangles(frame,window,pts,polygon_list, color = (0,255,0),
-tail_length=255, dbg=0):
+def draw_rotating_triangles(frame,window,pts,polygon_list,color = (0,255,0),
+tail_length=255):
     '''
     Points are the center points of the triangle to be drawn
     Count is the running iteration count of the program -1 means that no
@@ -97,7 +96,7 @@ tail_length=255, dbg=0):
     cv2.imshow(window, frame)
 
 def draw_rotating_triangles_interp(frame,window,pts,polygon_list, color = 0,
-tail_length=255, dbg=0):
+tail_length=255):
     '''
     Same function as draw_rotating_triangles but it has a linear interpolation
     function built in to bridge big gaps where the laser is moving quickly
@@ -127,19 +126,18 @@ tail_length=255, dbg=0):
 
         if interpolated_pts:
         #interpolated_pts returns a list of points only if there is a "gap"
-        #here we insert points into the main points list
+        #Insert points into the main points list:
             tail_length += len(interpolated_pts) #extend the loop
             [pts.insert(i+1,pt) for pt in reversed(interpolated_pts)] #add pts
 
         tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
-        if color_flag: #display colors!
-            color = hsv2rgb((i)/360,1,1)
-            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
-            #add triangle points to the returned list
-            polygon_list.appendleft(tri_pts)
-        else: #no rainbow, use the specified color
-            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
-            polygon_list.appendleft(tri_pts)
+
+        if color_flag:
+            color = hsv2rgb((i)/360,1,1) #Colors are cycled as a function of i
+
+        cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
+        polygon_list.appendleft(tri_pts)#add triangle points to the returned list
+
         #This is where we color the tails or erase the tail:
         #If tail_length < 0 we dont do anything (-1 flag)
         if tail_length > 0 and i > int(tail_length/2):
@@ -166,7 +164,6 @@ def distance_interp(a,b,threshold,density):
 
 def hsv2rgb(h,s,v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
-
 
 def tri_from_center(center_pt,height,rotation=0,scale =1):
     #Generates an equalateral triangle from the center point

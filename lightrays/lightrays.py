@@ -22,8 +22,8 @@ if video_file:
     red_upper = (config.laser_settings['red_upper_video'])
     video_stream = cv2.VideoCapture('./bin/laserwall.mp4')
 else:
-    red_lower = (config.laser_settings['red_lower'])
-    red_upper = (config.laser_settings['red_upper'])
+    red_lower = (config.laser_settings['red_lower_tv'])
+    red_upper = (config.laser_settings['red_upper_tv'])
     video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
 
 
@@ -97,10 +97,10 @@ while(1):
         # canvas.frame =DrawTools.draw_contrails(canvas.frame, red_laser.ptsDeque,
         # (0,255,0),100,0)
 
-        DrawTools.draw_simple_circle(canvas.frame,canvas.window_name,red_laser.ptsDeque)
+        # DrawTools.draw_simple_circle(canvas.frame,canvas.window_name,red_laser.ptsDeque)
 
-        # DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
-        # red_laser.polygonDeque,0,tail_length=100,dbg = 0)
+        DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,red_laser.ptsDeque,
+        red_laser.polygonDeque,0,tail_length=100)
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
