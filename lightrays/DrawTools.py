@@ -10,6 +10,7 @@ def draw_tracking_reticle(frame,window,LaserTracker):
     cv2.imshow(window, frame)
 
 def draw_simple_circle(frame,window,points,color=(0,0,255)):
+    #Simple example drawing method
     if len(points)>0:
         x = int(points[0][0])
         y = int(points[0][1])
@@ -17,13 +18,17 @@ def draw_simple_circle(frame,window,points,color=(0,0,255)):
         cv2.circle(frame, point, 10, color, 5)
         cv2.imshow(window, frame)
 
-#Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+
 def draw_contrails(frame,window,pts,color=0,tail_length=255):
+    '''
+    #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+    Draws a line with a color changing tail that decreases in thickness
+    '''
     height = frame.shape[0]
     width = frame.shape[1]
-    interp_density = .01 # 1 would be a triangle every pixel
-    interp_distance = 120 #distance between points to trigger interpolated values
-    
+    interp_density = .01 # 1 would be a point every pixel
+    interp_distance = 1 #distance between points to trigger interpolated values
+
     #check if the buffer is smaller than the number of points:
     #I.e. the very beginning
     if tail_length > len(pts):
@@ -40,16 +45,7 @@ def draw_contrails(frame,window,pts,color=0,tail_length=255):
         if pts[i - 1] is None or pts[i] is None:
             continue
 
-        interpolated_pts = distance_interp(pts[i],pts[i-1],
-                            interp_distance,interp_density)
-
-        if interpolated_pts:
-        #interpolated_pts returns a list of points only if there is a "gap"
-        #Insert points into the main points list:
-            tail_length += len(interpolated_pts) #extend the loop
-            [pts.insert(i+1,pt) for pt in reversed(interpolated_pts)] #add pts
-		# otherwise, compute the thickness of the line and
-		# draw the connecting lines
+		# Compute the thickness of the line and draw the connecting lines
         thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
         if color_flag: #display colors!
             # hue_modifier = LaserTracker.upperRange[0]
@@ -172,8 +168,9 @@ def distance_interp(a,b,threshold,density):
         x = np.linspace(a[0], b[0], dis*density)
         x = x[1:-1]#remove first and last as they are duplicates
         yinterp = np.interp(x, xp, fp)
-        # interpolated_pts_list = list(map(list,zip(x,yinterp)))
-        interpolated_pts_list = list(zip(x,yinterp))
+        yinterp_int = list(map(int, yinterp))
+        x_int= list(map(int, x))#convert to ints not floats
+        interpolated_pts_list = list(zip(x_int,yinterp_int))
     return interpolated_pts_list
 
 def hsv2rgb(h,s,v):
