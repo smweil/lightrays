@@ -18,6 +18,61 @@ def draw_simple_circle(frame,window,points,color=(0,0,255)):
         cv2.circle(frame, point, 10, color, 5)
         cv2.imshow(window, frame)
 
+def draw_3d_snake(frame,window,pts,polygon_list,thickness =4):
+    '''
+    THis on is tough to explain....
+    '''
+    height = frame.shape[0]
+    width = frame.shape[1]
+    tail_length = len(pts) #iterate over the entire list of pts
+
+    rotation_factor = .3 #How fast the segments rotate
+
+    #Iterate through the list of tracked points:
+    for i in range(1, tail_length):
+		# if either of the tracked points are None, ignore
+        if pts[i - 1] is None or pts[i] is None:
+            continue
+
+        # segment = np.array([pts[i-1],pts[i]],np.int32)
+        #  #store the line segment we wish to rotate
+        # polygon_list.appendleft(segment)
+        rot_pts = rotate_line_segment(pts[i-1],pts[i],(i*rotation_factor))
+        if thickness <0:
+            thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
+        color = hsv2rgb((i)/360,1,1)
+
+        pt_i1 = (rot_pts[1][0],rot_pts[1][1])
+        pt_i = (rot_pts[0][0],rot_pts[0][1])
+
+        cv2.line(frame,  pt_i1, pt_i, color, thickness,lineType=cv2.LINE_AA)
+
+        #Rewrite the backend of the tail:
+        # if tail_length > 0 and i > int(tail_length/2):
+        #     cv2.line(frame,pt_i1, pt_i,(0,0,0),thickness,lineType=cv2.LINE_AA)
+
+    cv2.imshow(window, frame)
+
+def draw_rainbow_snake(frame,window,pts,thickness =4):
+    '''
+    rotate individual line segments as we go
+    '''
+    height = frame.shape[0]
+    width = frame.shape[1]
+    tail_length = len(pts) #iterate over the entire list of pts
+
+    #Iterate through the list of tracked points:
+    for i in range(1, tail_length):
+		# if either of the tracked points are None, ignore
+        if pts[i - 1] is None or pts[i] is None:
+            continue
+
+        if thickness <0:
+            thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
+        color = hsv2rgb((i)/360,1,1)
+        cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
+
+    cv2.imshow(window, frame)
 
 def draw_contrails(frame,window,pts,color=0,tail_length=255):
     '''
@@ -26,18 +81,13 @@ def draw_contrails(frame,window,pts,color=0,tail_length=255):
     '''
     height = frame.shape[0]
     width = frame.shape[1]
-    interp_density = .01 # 1 would be a point every pixel
-    interp_distance = 1 #distance between points to trigger interpolated values
 
     #check if the buffer is smaller than the number of points:
     #I.e. the very beginning
     if tail_length > len(pts):
         tail_length = len(pts)
 
-    if color:
-        color_flag = 0
-    else:
-        color_flag = 1
+    color_flag = 0 if color else 1
 
     #Iterate through the list of tracked points:
     for i in range(1, tail_length):
@@ -47,6 +97,7 @@ def draw_contrails(frame,window,pts,color=0,tail_length=255):
 
 		# Compute the thickness of the line and draw the connecting lines
         thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
+
         if color_flag: #display colors!
             # hue_modifier = LaserTracker.upperRange[0]
             color = hsv2rgb((i)/360,1,1)
@@ -71,14 +122,10 @@ tail_length=255):
 
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
-        #set the tail length to the number of points we have:
         tail_length = len(pts)
 
-    #if color = (0,0,0) we attempt a rainbow
-    if color:
-        color_flag = 0
-    else:
-        color_flag = 1
+
+    color_flag = 0 if color else 1
 
     for i in range(1, tail_length):
         if pts[i] is None:
@@ -95,7 +142,8 @@ tail_length=255):
         else:
             cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
             polygon_list.appendleft(tri_pts)
-        #This is where we color the tails or erase the tail:
+
+        #This is where we change the tails or erase the tail:
         #If tail_length < 0 we dont do anything (-1 flag)
         if tail_length > 0 and i > int(tail_length/2):
             cv2.polylines(frame,[tri_pts],True,(0,0,0),1,lineType=cv2.LINE_AA)
@@ -120,11 +168,8 @@ tail_length=255):
     if tail_length > len(pts):
         tail_length = len(pts)
 
-    #if the user specified a color
-    if color:
-        color_flag = 0
-    else:
-        color_flag = 1
+    #if the user specified a color turn off flag
+    color_flag = 0 if color else 1
 
     i = 0
     while i < tail_length:
@@ -194,6 +239,21 @@ def tri_from_center(center_pt,height,rotation=0,scale =1):
         rot_mat = cv2.getRotationMatrix2D(center_pt, rotation, scale)
         rot_pts = rot_mat.dot(pts_ones.T).T
         pts = np.array(rot_pts,np.int32)
+    return pts
+
+def rotate_line_segment(pt_a,pt_b,rotation,scale=1):
+    #rotate points about the center of the segment they create
+    #Rotation is counterclockwise in degrees
+    pts = np.array([pt_a,pt_b],np.int32)
+    center_x = (pt_a[0]-pt_b[0])/2
+    center_y = (pt_a[1]-pt_b[1])/2
+    center = (center_x,center_y)
+    ones = np.ones(shape=(len(pts), 1))
+    pts_ones = np.hstack([pts, ones])
+
+    rot_mat = cv2.getRotationMatrix2D(center, rotation, scale)
+    rot_pts = rot_mat.dot(pts_ones.T).T
+    pts = np.array(rot_pts,np.int32)
     return pts
 
 
