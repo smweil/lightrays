@@ -5,6 +5,10 @@ from collections import deque
 import itertools
 import DrawGUI
 
+#Dev note:
+#make each on it's own class with it's own menu? Probably no...
+
+
 def draw_tracking_reticle(frame,window,LaserTracker):
     #Function draws a circle where it detects the laser on the cam screen
     #Largely used to make sure we are detecting a laser
@@ -26,7 +30,9 @@ def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
     height = frame.shape[0]
     width = frame.shape[1]
 
-    thickness,hue,_,_ = DrawGUI.get_trackbar_values()
+    thickness,hue= DrawGUI.get_trackbar_values(["Size","Hue"])
+    thickness = 1 if thickness<1 else thickness
+
     color = hsv2rgb(hue,360,360)
     tail_length = 0 if len(pts)<2 else 2 #only go if there are 2 or more pts
     #Iterate through the list of tracked points:
