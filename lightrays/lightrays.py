@@ -104,18 +104,26 @@ while(1):
 
     if red_laser.onScreen:
 
-        # DrawTools.draw_contrails(canvas.frame,canvas.window_name,
-        #     red_laser.ptsDeque,color=0,tail_length = 200)
+        # DrawTools.draw_comet(
+        #   canvas.frame,canvas.window_name,
+        #   red_laser.ptsDeque,color=0,tail_length = 200)
 
-        # DrawTools.draw_rainbow_snake(canvas.frame,canvas.window_name,
+        # DrawTools.draw_rainbow_snake(
+        #     canvas.frame,canvas.window_name,
         #     red_laser.ptsDeque,thickness=-1)
 
-        DrawTools.draw_3d_snake(canvas.frame,canvas.window_name,
-            red_laser.ptsDeque, red_laser.polygonDeque,thickness=1)
+        # DrawTools.draw_3d_snake(
+        #     canvas.frame,canvas.window_name,
+        #     red_laser.ptsDeque, red_laser.polygonDeque,thickness=1)
 
-        # DrawTools.draw_simple_circle(canvas.frame,canvas.window_name,red_laser.ptsDeque)
+        # DrawTools.draw_simple_circle(
+            # canvas.frame,canvas.window_name,red_laser.ptsDeque)
 
-        # DrawTools.draw_rotating_triangles_interp(canvas.frame, canvas.window_name,
+        DrawTools.draw_rotating_triangles(
+          canvas.frame, canvas.window_name,
+          red_laser.ptsDeque, red_laser.polygonDeque)
+
+
         # red_laser.ptsDeque,red_laser.polygonDeque,0,tail_length=100)
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)

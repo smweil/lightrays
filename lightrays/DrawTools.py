@@ -5,28 +5,30 @@ from collections import deque
 import itertools
 
 def draw_tracking_reticle(frame,window,LaserTracker):
-    #Function draws what the computer is tracking
+    #Function draws a circle where it detects the laser on the cam screen
+    #Largely used to make sure we are detecting a laser
     cv2.circle(frame, LaserTracker.center, 10, (0, 0, 255), 5)
     cv2.imshow(window, frame)
 
-def draw_simple_circle(frame,window,points,color=(0,0,255)):
-    #Simple example drawing method
-    if len(points)>0:
-        x = int(points[0][0])
-        y = int(points[0][1])
+def draw_simple_circle(frame,window,pts,color=(0,0,255)):
+    #Simple example drawing method that draws a circle on the canvas
+    if len(pts)>0:
+        x = int(pts[0][0])
+        y = int(pts[0][1])
         point = (x,y)
         cv2.circle(frame, point, 10, color, 5)
         cv2.imshow(window, frame)
 
-def draw_3d_snake(frame,window,pts,polygon_list,thickness =4):
+def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,
+    rotation_factor=.3):
     '''
-    THis on is tough to explain....
+    This one rotates the line segments between drawn points
+    It may be inaccurate, but it looks really neat.
     '''
     height = frame.shape[0]
     width = frame.shape[1]
     tail_length = len(pts) #iterate over the entire list of pts
 
-    rotation_factor = .3 #How fast the segments rotate
 
     #Iterate through the list of tracked points:
     for i in range(1, tail_length):
@@ -55,7 +57,11 @@ def draw_3d_snake(frame,window,pts,polygon_list,thickness =4):
 
 def draw_rainbow_snake(frame,window,pts,thickness =4):
     '''
-    rotate individual line segments as we go
+    Draws a rainbow trail on the canvas
+
+    Key arguments:
+    thickness -- if -1, it will grow dynamically otherwise it stays at the
+    specified thickness
     '''
     height = frame.shape[0]
     width = frame.shape[1]
@@ -74,10 +80,14 @@ def draw_rainbow_snake(frame,window,pts,thickness =4):
 
     cv2.imshow(window, frame)
 
-def draw_contrails(frame,window,pts,color=0,tail_length=255):
+def draw_comet(frame,window,pts,color=0,tail_length=255):
     '''
-    #Inspired by https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
+    #Inspired by:
+    https://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
     Draws a line with a color changing tail that decreases in thickness
+
+    Key arguments
+    color -- if color is not specified it will be a rainbow
     '''
     height = frame.shape[0]
     width = frame.shape[1]
@@ -108,62 +118,31 @@ def draw_contrails(frame,window,pts,color=0,tail_length=255):
     cv2.imshow(window, frame)
 
 
-def draw_rotating_triangles(frame,window,pts,polygon_list,color = 0,
-tail_length=255):
+def draw_rotating_triangles(frame,window,pts,polygon_list, color = 0,
+tail_length=150,rotation_factor = 2, scale_factor = .012):
     '''
-    Points are the center points of the triangle to be drawn
-    Count is the running iteration count of the program -1 means that no
-    staicking will occur
-    tail_length is the length of the desired tail
-    tail_stack is the amount of frames to stack up giving the blur effect
-    '''
-    height = frame.shape[0]
-    width = frame.shape[1]
+    pts -- The center points of the triangle to be drawn
+    color -- if not specified, will be a rainbow
+    tail_length is the length of the desired tail before we start drawing over it
 
-    #check if the buffer is smaller than the number of points:
-    if tail_length > len(pts):
-        tail_length = len(pts)
+    Has a linear interpolation function built in to bridge big gaps where the
+    laser is moving quickly.
 
+    Key arguments:
+    rotation_factor -- how much to shift the triangles in the tail
+    scale_factor --how much to scale the triangles in the tail
 
-    color_flag = 0 if color else 1
-
-    for i in range(1, tail_length):
-        if pts[i] is None:
-            continue
-        #compute distance between this point and the last point for interp:
-        tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
-        if color_flag: #display colors!
-            #hue_modifier = int((LaserTracker.disDeque[i]**4)*2)
-            # hue_modifier = LaserTracker.upperRange[0]
-            color = hsv2rgb((i)/360,1,1)
-            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
-            #add triangle points to the returned list
-            polygon_list.appendleft(tri_pts)
-        else:
-            cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
-            polygon_list.appendleft(tri_pts)
-
-        #This is where we change the tails or erase the tail:
-        #If tail_length < 0 we dont do anything (-1 flag)
-        if tail_length > 0 and i > int(tail_length/2):
-            cv2.polylines(frame,[tri_pts],True,(0,0,0),1,lineType=cv2.LINE_AA)
-    # cv2.waitKey()
-
-    cv2.imshow(window, frame)
-
-def draw_rotating_triangles_interp(frame,window,pts,polygon_list, color = 0,
-tail_length=255):
-    '''
-    Same function as draw_rotating_triangles but it has a linear interpolation
-    function built in to bridge big gaps where the laser is moving quickly
-    It is an attempt at smoothing drawing
+    Key variables in the method:
+    interp_density -- 1 would be a triangle every pixel
+    interp_distance -- distance between points to trigger interpolated values
+    set to a large number to not interpolate
     '''
     interp_density = .01 # 1 would be a triangle every pixel
     interp_distance = 120 #distance between points to trigger interpolated values
 
+
     height = frame.shape[0]
     width = frame.shape[1]
-
     #check if the buffer is smaller than the number of points:
     if tail_length > len(pts):
         tail_length = len(pts)
@@ -185,7 +164,8 @@ tail_length=255):
             tail_length += len(interpolated_pts) #extend the loop
             [pts.insert(i+1,pt) for pt in reversed(interpolated_pts)] #add pts
 
-        tri_pts = tri_from_center(pts[i],height=20,rotation=i*2,scale=1)
+        tri_pts = tri_from_center(
+            pts[i],height=20,rotation=i*rotation_factor,scale=i*scale_factor+1)
 
         if color_flag:
             color = hsv2rgb((i)/360,1,1) #Colors are cycled as a function of i

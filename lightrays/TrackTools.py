@@ -8,14 +8,20 @@ from collections import deque
 #This class will handle the detection and tracking of the laser
 class LaserTracker:
     def __init__(self,lowerRange,upperRange,scale_factors,reset_trigger = 100):
-        '''upper and lower HSV values
+        '''
+        This class holds detection parameters, and collects detected points
+
+        Keyword arguments:
+        lowerRange -- the lower HSV detection values (H,S,V)
+        upperRange -- the upper HSV detection values (H,S,V)
+
+        scale_factors -- these factors are the difference between the detection
+        screen coordinates and the display screen (canvas) coordinates.
 
         reset_trigger is the amount of frames the laser has not been detected
-        before it resets the canvas and the trails
-
+        before it resets the list of detected points (trail)
 
         if reset_counter=0 the trails never disappear.
-
         '''
         self.scale_factors = scale_factors #the difference in size between cam and canvas
         self.upperRange = upperRange
@@ -67,22 +73,13 @@ class LaserTracker:
         self.radius = radius
 
     def initialize_tracker(self,center,radius,frame):
-        tracker_types = ['KCF', 'TLD', 'MEDIANFLOW', 'GOTURN', 'MOSSE']
-        tracker_type = tracker_types[0]
-
+        tracker_type = 'KCF'
         if tracker_type == 'KCF':
             tracker = cv2.TrackerKCF_create()
-        if tracker_type == 'TLD':
-            tracker = cv2.TrackerTLD_create()
-        if tracker_type == 'MEDIANFLOW':
-            tracker = cv2.TrackerMedianFlow_create()
-        if tracker_type == 'GOTURN':
-            tracker = cv2.TrackerGOTURN_create()
         if tracker_type == 'MOSSE':
             tracker = cv2.TrackerMOSSE_create()
 
         #Compute inital bounding box with center rand radius:
-        #(xmin,ymin,boxwidth,boxheight)
         bbox = (center[0]-radius, center[1]-radius, 2.5*radius, 2.5*radius)
 
         # Initialize tracker with first frame and bounding box
@@ -90,7 +87,7 @@ class LaserTracker:
         self.tracker = tracker
 
     def update_tracker(self,frame):
-            # Update tracker
+
             self.trackerStatus, bbox = self.tracker.update(frame)
             if self.trackerStatus:
                 self.onScreen = True
@@ -105,20 +102,19 @@ class LaserTracker:
                 #We have lost the tracker:
                 self.onScreen = False
 
-    #This is the "main" function. It will detect and initiate the tracker
-    #and re-detect if the tracker becomes inactive
-    def run_full_detection(self,frame):
 
-        if self.trackerStatus:
-            #if the tracker is working update the tracker
+    def run_full_detection(self,frame):
+        '''
+        This is the "main" function: it will detect and initiate the tracker
+        and re-detect if the tracker becomes inactive
+        '''
+        if self.trackerStatus:#if the tracker is working update the tracker
             self.update_tracker(frame)
-        else:
-            #if the tracker failed, redetect the contour
+        else:#if the tracker failed, redetect the contour
             self.detect(frame)
             self.lostTrackCounter +=1
-
             if self.center: #if we have detected the object
-                self.initialize_tracker(self.center,self.radius,frame)  #initialize the tracker
+                self.initialize_tracker(self.center,self.radius,frame) 
                 self.lostTrackCounter = 0 #reset the counter
 
         #If we have lost the tracker for longer than the reset_trigger
