@@ -19,6 +19,37 @@ def draw_simple_circle(frame,window,pts,color=(0,0,255)):
         cv2.circle(frame, point, 10, color, 5)
         cv2.imshow(window, frame)
 
+def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
+    #COLOR IN BGR
+    #Allows the user to cycle through colors and brush width with keyboard
+    height = frame.shape[0]
+    width = frame.shape[1]
+
+
+    #Dev note: eventually turn into a gui slider
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("y"): #change color
+        hue_modifier = bgr2hsv(color[2],color[1],color[0])[0]
+        hue_modifier+=20
+        color = hsv2rgb(hue_modifier,360,360)
+    if key == ord("t"): #increase thickness
+        thickness +=1
+        print(thickness)
+    if key == ord("r"): #decrease thickness
+        thickness -=1
+
+
+    tail_length = 0 if len(pts)<2 else 2 #only go if there are 2 or more pts
+    #Iterate through the list of tracked points:
+
+    for i in range(1, tail_length):
+        # if either of the tracked points are None, ignore
+        if pts[i] is None or pts[i-1] is None:
+            continue
+        cv2.line(frame,  pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
+
+    cv2.imshow(window, frame)
+    return color, thickness #we need to store these values
 def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,
     rotation_factor=.3):
     '''
@@ -42,7 +73,7 @@ def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,
         rot_pts = rotate_line_segment(pts[i-1],pts[i],(i*rotation_factor))
         if thickness <0:
             thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
-        color = hsv2rgb((i)/360,1,1)
+        color = hsv2rgb((i),360,360)
 
         pt_i1 = (rot_pts[1][0],rot_pts[1][1])
         pt_i = (rot_pts[0][0],rot_pts[0][1])
@@ -75,7 +106,7 @@ def draw_rainbow_snake(frame,window,pts,thickness =4):
 
         if thickness <0:
             thickness = int(np.sqrt(tail_length/ float(i + 1)) * 1.5)
-        color = hsv2rgb((i)/360,1,1)
+        color = hsv2rgb((i),360,360)
         cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
 
     cv2.imshow(window, frame)
@@ -110,7 +141,7 @@ def draw_comet(frame,window,pts,color=0,tail_length=255):
 
         if color_flag: #display colors!
             # hue_modifier = LaserTracker.upperRange[0]
-            color = hsv2rgb((i)/360,1,1)
+            color = hsv2rgb((i),360,360)
             cv2.line(frame, pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
         else: #solid color
             cv2.line(frame, pts[i - 1], pts[i], color, thickness)
@@ -168,7 +199,7 @@ tail_length=150,rotation_factor = 2, scale_factor = .012):
             pts[i],height=20,rotation=i*rotation_factor,scale=i*scale_factor+1)
 
         if color_flag:
-            color = hsv2rgb((i)/360,1,1) #Colors are cycled as a function of i
+            color = hsv2rgb((i),360,360) #Colors are cycled as a function of i
 
         cv2.polylines(frame,[tri_pts],True,color,3,lineType=cv2.LINE_AA)
         polygon_list.appendleft(tri_pts)#add triangle points to the returned list
@@ -199,7 +230,9 @@ def distance_interp(a,b,threshold,density):
     return interpolated_pts_list
 
 def hsv2rgb(h,s,v):
-    return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+    return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h/360,s/360,v/360))
+def bgr2hsv(b,g,r):
+    return tuple(int(i*360) for i in colorsys.rgb_to_hsv(r/255,g/255,b/255))
 
 def tri_from_center(center_pt,height,rotation=0,scale =1):
     #Generates an equalateral triangle from the center point

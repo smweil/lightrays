@@ -19,6 +19,8 @@ def select_canvas_area(window_name,frame):
     '''
     displays the camera image and asks user to draw a bounding box
     to define the canvas
+
+    This needs to be a four point transformation like L.A.S.E.R Tag
     '''
     bbox = cv2.selectROI(window_name, frame, fromCenter=False,
 			showCrosshair=True)

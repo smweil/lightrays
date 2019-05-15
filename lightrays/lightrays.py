@@ -70,17 +70,19 @@ while setup_flag:
         cv2.imshow(camera_window, camera_frame)
 
 
-#Width of the canvas/width of the camera
-
-
+#Initialize trackers:
 
 
 red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
+#Dev note: Setup sliders in this file and just call them from the drawtools
+#file
 
+red_color = (0,255,0) #starting value for the pen
+red_thickness = 3   #starting value for the pen
 
+#Main loop:
 canvas.clear_image()
 fps = FPS().start()
-#Main loop:
 while(1):
     #Reload the new frame and crop image
     ret, camera_frame = video_stream.read()
@@ -103,7 +105,6 @@ while(1):
         break
 
     if red_laser.onScreen:
-
         # DrawTools.draw_comet(
         #   canvas.frame,canvas.window_name,
         #   red_laser.ptsDeque,color=0,tail_length = 200)
@@ -119,12 +120,14 @@ while(1):
         # DrawTools.draw_simple_circle(
             # canvas.frame,canvas.window_name,red_laser.ptsDeque)
 
-        DrawTools.draw_rotating_triangles(
-          canvas.frame, canvas.window_name,
-          red_laser.ptsDeque, red_laser.polygonDeque)
+        # DrawTools.draw_rotating_triangles(
+        #   canvas.frame, canvas.window_name,
+        #   red_laser.ptsDeque, red_laser.polygonDeque)
 
-
-        # red_laser.ptsDeque,red_laser.polygonDeque,0,tail_length=100)
+        [red_color,red_thickness] = DrawTools.pen_mode(
+        canvas.frame,canvas.window_name,red_laser.ptsDeque,
+        red_color,red_thickness)
+        print('oc',red_color)
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
