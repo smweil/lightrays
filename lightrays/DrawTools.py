@@ -3,6 +3,7 @@ import numpy as np
 import colorsys
 from collections import deque
 import itertools
+import DrawGUI
 
 def draw_tracking_reticle(frame,window,LaserTracker):
     #Function draws a circle where it detects the laser on the cam screen
@@ -25,23 +26,10 @@ def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
     height = frame.shape[0]
     width = frame.shape[1]
 
-
-    #Dev note: eventually turn into a gui slider
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("y"): #change color
-        hue_modifier = bgr2hsv(color[2],color[1],color[0])[0]
-        hue_modifier+=20
-        color = hsv2rgb(hue_modifier,360,360)
-    if key == ord("t"): #increase thickness
-        thickness +=1
-        print(thickness)
-    if key == ord("r"): #decrease thickness
-        thickness -=1
-
-
+    thickness,hue,_,_ = DrawGUI.get_trackbar_values()
+    color = hsv2rgb(hue,360,360)
     tail_length = 0 if len(pts)<2 else 2 #only go if there are 2 or more pts
     #Iterate through the list of tracked points:
-
     for i in range(1, tail_length):
         # if either of the tracked points are None, ignore
         if pts[i] is None or pts[i-1] is None:
@@ -49,7 +37,7 @@ def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
         cv2.line(frame,  pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
 
     cv2.imshow(window, frame)
-    return color, thickness #we need to store these values
+
 def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,
     rotation_factor=.3):
     '''

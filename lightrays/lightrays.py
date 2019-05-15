@@ -81,6 +81,7 @@ red_color = (0,255,0) #starting value for the pen
 red_thickness = 3   #starting value for the pen
 
 #Main loop:
+DrawTools.DrawGUI.initialize_drawing_menu()
 canvas.clear_image()
 fps = FPS().start()
 while(1):
@@ -124,10 +125,10 @@ while(1):
         #   canvas.frame, canvas.window_name,
         #   red_laser.ptsDeque, red_laser.polygonDeque)
 
-        [red_color,red_thickness] = DrawTools.pen_mode(
+        DrawTools.pen_mode(
         canvas.frame,canvas.window_name,red_laser.ptsDeque,
         red_color,red_thickness)
-        print('oc',red_color)
+
 
         DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
