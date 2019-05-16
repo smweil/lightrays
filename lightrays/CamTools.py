@@ -13,6 +13,7 @@ def draw_setup_text(window_name,frame):
     cv2.putText(frame,'Camera Setup',(int(width/3),30),
      font, 1,(255,255,255),2,cv2.LINE_AA)
     cv2.putText(frame,'Select Area: S',(0,80), font, 1,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame,'New HSV Filter: H',(0,115), font, 1,(255,255,255),2,cv2.LINE_AA)
     cv2.putText(frame,'Done: <Enter>',(0,150), font, 1,(255,255,255),2,cv2.LINE_AA)
 
 def select_canvas_area(window_name,frame):

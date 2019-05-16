@@ -6,6 +6,7 @@ import TrackTools
 import DrawTools
 import CanvasTools
 import config
+import CamGUI
 from imutils.video import FPS
 
 # Windows names
@@ -13,9 +14,8 @@ camera_window = "Computer Vision:"
 canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
-# video_file = False #Set this flag to False if using a webcam
-video_file = './bin/laserwall.mp4'
-
+video_file = False #Set this flag to False if using a webcam
+# video_file = './bin/laserwall.mp4'
 
 if video_file:
     red_lower = (config.laser_settings['red_lower_video'])
@@ -32,6 +32,7 @@ else:
 ret, camera_frame = video_stream.read()
 setup_flag = 1
 camera_roi = None
+user_defined_filter = 0
 while setup_flag:
     #Setup Canvas:
     if setup_flag ==1:
@@ -58,6 +59,9 @@ while setup_flag:
         if key ==ord("s"):
             camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
             setup_flag =0
+        if key ==ord("h"): #setup a new filter
+            hsv_lower,hsv_upper = CamGUI.run_gui(camera_window,video_stream)
+            user_defined_filter = 1
         if key == 13: #if enter key is hit first assume no cropping
             scale_factors = (1,1)
             setup_flag =0
@@ -66,14 +70,16 @@ while setup_flag:
             scale_width = canvas.frame_width/camera_roi[2]
             scale_height = canvas.frame_height/camera_roi[3]
             scale_factors = (scale_width, scale_height)
-
         cv2.imshow(camera_window, camera_frame)
 
 
 #Initialize trackers:
 
+if user_defined_filter:
+    red_laser = TrackTools.LaserTracker(hsv_lower,hsv_upper,scale_factors,100)
+else:
+    red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
 
-red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
 #Dev note: Setup sliders in this file and just call them from the drawtools
 #file
 

@@ -9,7 +9,7 @@ def initialize_drawing_menu():
     '''
     cv2.namedWindow("Drawing Options", cv2.WINDOW_NORMAL)
 
-    slider_value_max = [40,360,255,255]
+    slider_value_max = [40,360,360,360]
     slider_value_min = [0,0,0,0]
     for i in range(len(SLIDER_LIST)):
         cv2.createTrackbar(SLIDER_LIST[i], "Drawing Options",

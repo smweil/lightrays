@@ -63,8 +63,8 @@ class LaserTracker:
             self.onScreen = True
 
             #scale the points based on the difference between the cam and the canvas:
-            scaled_center = (center[0]*self.scale_factors[0],
-                            center[1]*self.scale_factors[1])
+            scaled_center = (int(center[0]*self.scale_factors[0]),
+                            int(center[1]*self.scale_factors[1]))
             self.ptsDeque.appendleft(scaled_center) #add points to display
 
         else: #nothing detected
@@ -95,8 +95,8 @@ class LaserTracker:
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2))
                 self.radius = bbox[2]/2
                 #add points to list
-                scaled_center = (self.center[0]*self.scale_factors[0],
-                                self.center[1]*self.scale_factors[1])
+                scaled_center = (int(self.center[0]*self.scale_factors[0]),
+                                int(self.center[1]*self.scale_factors[1]))
                 self.ptsDeque.appendleft(scaled_center)
             else :
                 #We have lost the tracker:
@@ -114,7 +114,7 @@ class LaserTracker:
             self.detect(frame)
             self.lostTrackCounter +=1
             if self.center: #if we have detected the object
-                self.initialize_tracker(self.center,self.radius,frame) 
+                self.initialize_tracker(self.center,self.radius,frame)
                 self.lostTrackCounter = 0 #reset the counter
 
         #If we have lost the tracker for longer than the reset_trigger
