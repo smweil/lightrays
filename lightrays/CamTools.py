@@ -28,6 +28,7 @@ def select_canvas_area(window_name,frame):
     return bbox
 
 
+
 class WebcamVideoStream :
     def __init__(self, src = 0, width = 320, height = 240) :
         self.stream = cv2.VideoCapture(src)

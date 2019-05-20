@@ -9,24 +9,28 @@ import config
 import CamGUI
 from imutils.video import FPS
 
-# Windows names
-camera_window = "Computer Vision:"
-canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
-
-
 video_file = False #Set this flag to False if using a webcam
 # video_file = './bin/laserwall.mp4'
 
 if video_file:
     red_lower = (config.laser_settings['red_lower_video'])
     red_upper = (config.laser_settings['red_upper_video'])
+else:
+    red_lower = (config.laser_settings['red_lower'])
+    red_upper = (config.laser_settings['red_upper'])
+
+
+#Initialize video stream
+if video_file:
     video_stream = cv2.VideoCapture(video_file)
 else:
-    red_lower = (config.laser_settings['red_lower_tv'])
-    red_upper = (config.laser_settings['red_upper_tv'])
     video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
 
+# Initialize windows:
 
+camera_window = "Computer Vision:"
+
+canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
 ret, camera_frame = video_stream.read()
@@ -45,6 +49,7 @@ while setup_flag:
             canvas.full_screen()
         elif key == 13: #Enter key move on to camera setup
             ret, camera_frame = video_stream.read()
+            camera_window_cv= cv2.namedWindow(camera_window,cv2.WINDOW_NORMAL)
             cv2.imshow(camera_window, camera_frame)
             setup_flag =2
 
@@ -57,7 +62,12 @@ while setup_flag:
         CamTools.draw_setup_text(camera_window,camera_frame)
 
         if key ==ord("s"):
-            camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
+            # camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
+            coords = CanvasTools.CoordinateStore(camera_window)
+            while coords.click_count < 3:
+                cv2.setMouseCallback(camera_window,coords.select_point)
+
+            print(canvas.t_matrix)
             setup_flag =0
         if key ==ord("h"): #setup a new filter
             hsv_lower,hsv_upper = CamGUI.run_gui(camera_window,video_stream)

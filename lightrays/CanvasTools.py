@@ -118,5 +118,76 @@ class Canvas:
         cv2.resizeWindow(self.window_name, self.window_width,self.window_height)
         cv2.imshow(self.window_name, self.frame)
 
-        def get_screen_info(self):
-            pass
+    def get_screen_info(self):
+        pass
+
+    def get_canvas_transform(pts):
+        self.t_matrix = four_point_transform(self.frame_width,
+                                        self.frame_height,pts)
+
+
+
+
+class CoordinateStore:
+    def __init__(self,window_name):
+        self.points = []
+        self.click_count = 0
+        self.window_name = window_name
+        print("initiated")
+
+    def select_point(self,event,x,y,flags,param):
+            print("clicky")
+            if event == cv2.EVENT_LBUTTONDBLCLK:
+                print("click")
+                cv2.circle(self.window_name,(x,y),3,(255,0,0),-1)
+                self.points.append((x,y))
+                self.click_count +=1
+
+
+
+
+    def order_points(self):
+        '''
+        From:
+        https://www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
+        '''
+    	# initialzie a list of coordinates that will be ordered
+    	# such that the first entry in the list is the top-left,
+    	# the second entry is the top-right, the third is the
+    	# bottom-right, and the fourth is the bottom-left
+        rect = np.zeros((4, 2), dtype = "float32")
+
+    	# the top-left point will have the smallest sum, whereas
+    	# the bottom-right point will have the largest sum
+        s = self.points.sum(axis = 1)
+        rect[0] = self.points[np.argmin(s)]
+        rect[2] = self.points[np.argmax(s)]
+
+    	# now, compute the difference between the points, the
+    	# top-right point will have the smallest difference,
+    	# whereas the bottom-left will have the largest difference
+        diff = np.diff(self.points, axis = 1)
+        rect[1] = self.points[np.argmin(diff)]
+        rect[3] = self.points[np.argmax(diff)]
+
+    	# return the ordered coordinates
+        self.points = rect
+
+
+def four_point_transform(width,height,pts):
+	# obtain a consistent order of the points and unpack them
+	# individually
+	rect = order_points(pts)
+	(tl, tr, br, bl) = rect
+
+	dst = np.array([
+		[0, 0],
+		[width - 1, 0],
+		[width - 1, height - 1],
+		[0, height - 1]], dtype = "float32")
+
+	# compute the perspective transform matrix and then apply it
+	M = cv2.getPerspectiveTransform(rect, dst)
+
+	# return the transformation matrix
+	return M
