@@ -36,13 +36,13 @@ class LaserTracker:
     def detect(self, frame): #initial detection of the laser contour
         #Should be resized from the source:
         # frame = imutils.resize(frame, width=500) #resize the frame
-        blurred = cv2.GaussianBlur(frame, (11, 11), 0) #blur the frame
+        blurred = cv2.GaussianBlur(frame, (5, 5), 0) #blur the frame
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV) #convert to HSV
 
         #create the mask:
         mask = cv2.inRange(hsv, self.lowerRange, self.upperRange) #localization
-        mask = cv2.erode(mask, None, iterations=2)
-        mask = cv2.dilate(mask, None, iterations=2)
+        mask = cv2.erode(mask, None, iterations=1)
+        mask = cv2.dilate(mask, None, iterations=1)
 
         #Find the contours:
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,

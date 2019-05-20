@@ -13,6 +13,9 @@ laser_settings = {
     'red_lower':(170,0,208),
     'red_upper':(255,255,255),
 
+    'red_lower_k':(150,125,164),
+    'red_upper_k':(255,255,255),
+
     'red_lower_tv':(120,0,133),
     'red_upper_tv':(255,255,255),
 

@@ -53,7 +53,8 @@ def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,
     height = frame.shape[0]
     width = frame.shape[1]
     tail_length = len(pts) #iterate over the entire list of pts
-    rotation_factor = DrawGUI.get_trackbar_values(["Rotation"])/100
+    # rotation_factor = DrawGUI.get_trackbar_values(["Rotation"])/100
+    rotation_factor = .1
 
     #Iterate through the list of tracked points:
     for i in range(1, tail_length):
