@@ -73,12 +73,16 @@ class LaserTracker:
         self.radius = radius
 
     def initialize_tracker(self,center,radius,frame):
-        tracker_type = 'KCF'
+        tracker_type = 'MOSSE'
+
         if tracker_type == 'KCF':
             tracker = cv2.TrackerKCF_create()
+        if tracker_type == 'KCF':
+            tracker = cv2.TrackerKCF_create()
+        if tracker_type == 'TLD':
+            tracker = cv2.TrackerTLD_create()
         if tracker_type == 'MOSSE':
             tracker = cv2.TrackerMOSSE_create()
-
         #Compute inital bounding box with center rand radius:
         bbox = (center[0]-radius, center[1]-radius, 2.5*radius, 2.5*radius)
 
@@ -103,7 +107,7 @@ class LaserTracker:
                 self.onScreen = False
 
 
-    def run_full_detection(self,frame):
+    def run_full_detection_tracker(self,frame):
         '''
         This is the "main" function: it will detect and initiate the tracker
         and re-detect if the tracker becomes inactive
@@ -111,6 +115,7 @@ class LaserTracker:
         if self.trackerStatus:#if the tracker is working update the tracker
             self.update_tracker(frame)
         else:#if the tracker failed, redetect the contour
+
             self.detect(frame)
             self.lostTrackCounter +=1
             if self.center: #if we have detected the object
@@ -122,7 +127,22 @@ class LaserTracker:
         if self.reset_trigger !=0 and self.lostTrackCounter > self.reset_trigger:
             self.reset()
 
-            frame = np.zeros(frame.shape, dtype=np.uint8)
+    def run_full_detection(self,frame):
+        '''
+        This detects the object and doesn't utilize any trackers
+        '''
+        self.detect(frame)
+
+        if self.center: #if we have detected the object
+            self.initialize_tracker(self.center,self.radius,frame)
+            self.lostTrackCounter = 0 #reset the counter
+        else:
+            self.lostTrackCounter +=1
+
+        #If we have lost the tracker for longer than the reset_trigger
+        #I.e. the laser is off, reset the trails
+        if self.reset_trigger !=0 and self.lostTrackCounter > self.reset_trigger:
+            self.reset()
 
     def reset(self):
         self.ptsDeque = deque() #empty list for tracked points

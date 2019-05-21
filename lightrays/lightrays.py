@@ -144,13 +144,14 @@ while(1):
               red_laser.ptsDeque,color=0,tail_length = 200)
 
 
-        # DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
+        DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
 
     # if green_laser.onScreen:
     #     camera_frame = DrawTools.draw_tracking_reticle(camera_frame,green_laser)
     #     canvas.frame = DrawTools.draw_canvas_circle(canvas.frame, green_laser, (255, 0, 0))
 
-    # cv2.imshow(camera_window, camera_frame)
+    cv2.imshow(camera_window, camera_frame)
+
     fps.update()
 fps.stop()
 
@@ -162,4 +163,5 @@ print("[INFO] Lost Track: {:.2f}".format(red_laser.lostTrackCounter))
 #Housekeeping
 if ret == 1:
     video_stream.stop()
+cv2.waitKey()
 cv2.destroyAllWindows()
