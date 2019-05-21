@@ -24,9 +24,10 @@ def draw_simple_circle(frame,window,pts,color=(0,0,255)):
         cv2.circle(frame, point, 10, color, 5)
         cv2.imshow(window, frame)
 
-def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
+def pen_mode(frame,window,pts,new_line_count,color = (0,255,0),thickness = 4):
     #COLOR IN BGR
     #Allows the user to cycle through colors and brush width with keyboard
+    #new_line_count is the amount of time before we start a newline
     height = frame.shape[0]
     width = frame.shape[1]
 
@@ -34,14 +35,8 @@ def pen_mode(frame,window,pts,color = (0,255,0),thickness = 4):
     thickness = 1 if thickness<1 else thickness
 
     color = hsv2rgb(hue,360,360)
-    tail_length = 0 if len(pts)<2 else 2 #only go if there are 2 or more pts
-    #Iterate through the list of tracked points:
-    for i in range(1, tail_length):
-        # if either of the tracked points are None, ignore
-        if pts[i] is None or pts[i-1] is None:
-            continue
-        cv2.line(frame,  pts[i - 1], pts[i], color, thickness,lineType=cv2.LINE_AA)
-
+    if len(pts)>1:
+        cv2.line(frame,  pts[0], pts[1], color, thickness,lineType=cv2.LINE_AA)
     cv2.imshow(window, frame)
 
 def draw_3d_snake(frame,window,pts,polygon_list,thickness =4,

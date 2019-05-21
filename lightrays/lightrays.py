@@ -15,7 +15,7 @@ canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
 video_file = False #Set this flag to False if using a webcam
-# video_file = './bin/laserwall.mp4'
+video_file = './bin/laserwall.mp4'
 
 if video_file:
     red_lower = (config.laser_settings['red_lower_video'])
@@ -120,9 +120,9 @@ while(1):
 
     if red_laser.onScreen:
         if mode == 0:
-            DrawTools.draw_comet(
-              canvas.frame,canvas.window_name,
-              red_laser.ptsDeque,color=0,tail_length = 200)
+            DrawTools.pen_mode(
+                canvas.frame,canvas.window_name,red_laser.ptsDeque,
+                red_color,red_thickness)
         elif mode ==1:
             DrawTools.draw_rainbow_snake(
                 canvas.frame,canvas.window_name,
@@ -139,9 +139,9 @@ while(1):
               canvas.frame, canvas.window_name,
               red_laser.ptsDeque, red_laser.polygonDeque)
         elif mode == 5:
-            DrawTools.pen_mode(
-            canvas.frame,canvas.window_name,red_laser.ptsDeque,
-            red_color,red_thickness)
+            DrawTools.draw_comet(
+              canvas.frame,canvas.window_name,
+              red_laser.ptsDeque,color=0,tail_length = 200)
 
 
         # DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
