@@ -24,7 +24,7 @@ if video_file:
 else:
     red_lower = (config.laser_settings['red_lower_k'])
     red_upper = (config.laser_settings['red_upper_k'])
-    video_stream = CamTools.WebcamVideoStream(width=500, height = 500).start()
+    video_stream = CamTools.WebcamVideoStream(width=320, height=240).start()
 
 
 
@@ -32,7 +32,7 @@ else:
 ret, camera_frame = video_stream.read()
 setup_flag = 1
 camera_roi = None
-user_defined_filter = 0
+user_defined_filter = 0 #flag if the user used custom HSV in the beginning
 while setup_flag:
     #Setup Canvas:
     if setup_flag ==1:
@@ -74,7 +74,6 @@ while setup_flag:
 
 
 #Initialize trackers:
-
 if user_defined_filter:
     red_laser = TrackTools.LaserTracker(hsv_lower,hsv_upper,scale_factors,100)
 else:
@@ -151,7 +150,6 @@ while(1):
     #     canvas.frame = DrawTools.draw_canvas_circle(canvas.frame, green_laser, (255, 0, 0))
 
     cv2.imshow(camera_window, camera_frame)
-
     fps.update()
 fps.stop()
 

@@ -41,8 +41,8 @@ class LaserTracker:
 
         #create the mask:
         mask = cv2.inRange(hsv, self.lowerRange, self.upperRange) #localization
-        mask = cv2.erode(mask, None, iterations=1)
-        mask = cv2.dilate(mask, None, iterations=1)
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=2)
 
         #Find the contours:
         cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
@@ -63,8 +63,10 @@ class LaserTracker:
             self.onScreen = True
 
             #scale the points based on the difference between the cam and the canvas:
+            #This will become transformation matrix
             scaled_center = (int(center[0]*self.scale_factors[0]),
                             int(center[1]*self.scale_factors[1]))
+
             self.ptsDeque.appendleft(scaled_center) #add points to display
 
         else: #nothing detected
@@ -73,7 +75,7 @@ class LaserTracker:
         self.radius = radius
 
     def initialize_tracker(self,center,radius,frame):
-        tracker_type = 'MOSSE'
+        tracker_type = 'KCF'
 
         if tracker_type == 'KCF':
             tracker = cv2.TrackerKCF_create()
@@ -91,7 +93,6 @@ class LaserTracker:
         self.tracker = tracker
 
     def update_tracker(self,frame):
-
             self.trackerStatus, bbox = self.tracker.update(frame)
             if self.trackerStatus:
                 self.onScreen = True
@@ -132,7 +133,6 @@ class LaserTracker:
         This detects the object and doesn't utilize any trackers
         '''
         self.detect(frame)
-
         if self.center: #if we have detected the object
             self.initialize_tracker(self.center,self.radius,frame)
             self.lostTrackCounter = 0 #reset the counter
