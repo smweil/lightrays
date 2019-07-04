@@ -10,7 +10,9 @@ import CamGUI
 from imutils.video import FPS
 
 # Windows names
-camera_window = "Computer Vision:"
+camera_window_name = "Camera"
+cv2.namedWindow(camera_window_name,cv2.WINDOW_NORMAL)
+# camera_window = cv2.namedWindow(camera_window_name,cv2.WINDOW_NORMAL)
 canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
@@ -45,7 +47,7 @@ while setup_flag:
             canvas.full_screen()
         elif key == 13: #Enter key move on to camera setup
             ret, camera_frame = video_stream.read()
-            cv2.imshow(camera_window, camera_frame)
+            cv2.imshow(camera_window_name, camera_frame)
             setup_flag =2
 
     #only stream the setup screen if it's from a webcam:
@@ -54,10 +56,24 @@ while setup_flag:
 
     if setup_flag ==2:
         key = cv2.waitKey(1) & 0xFF
-        CamTools.draw_setup_text(camera_window,camera_frame)
-
+        CamTools.draw_setup_text(camera_window_name,camera_frame)
         if key ==ord("s"):
-            camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
+            #Old school way of just utilizing a square:
+            # camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
+
+            camera_setup = CamTools.CameraSetup(
+                camera_frame,canvas.frame_width,canvas.frame_height)
+
+
+            cv2.setMouseCallback(camera_window_name,camera_setup.select_point)
+
+            while len(camera_setup.points)<3:
+                cv2.imshow(camera_window_name, camera_frame)
+                cv2.waitKey(10)
+
+            t_matrix = camera_setup.get_t_matrix()
+
+
             setup_flag =0
         if key ==ord("h"): #setup a new filter
             hsv_lower,hsv_upper = CamGUI.run_gui(camera_window,video_stream)
@@ -70,7 +86,7 @@ while setup_flag:
             scale_width = canvas.frame_width/camera_roi[2]
             scale_height = canvas.frame_height/camera_roi[3]
             scale_factors = (scale_width, scale_height)
-        cv2.imshow(camera_window, camera_frame)
+        cv2.imshow(camera_window_name, camera_frame)
 
 
 #Initialize trackers:
@@ -143,13 +159,13 @@ while(1):
               red_laser.ptsDeque,color=0,tail_length = 200)
 
 
-        DrawTools.draw_tracking_reticle(camera_frame,camera_window,red_laser)
+        DrawTools.draw_tracking_reticle(camera_frame,camera_window_name,red_laser)
 
     # if green_laser.onScreen:
     #     camera_frame = DrawTools.draw_tracking_reticle(camera_frame,green_laser)
     #     canvas.frame = DrawTools.draw_canvas_circle(canvas.frame, green_laser, (255, 0, 0))
 
-    cv2.imshow(camera_window, camera_frame)
+    cv2.imshow(camera_window_name, camera_frame)
     fps.update()
 fps.stop()
 

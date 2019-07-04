@@ -27,6 +27,59 @@ def select_canvas_area(window_name,frame):
 			showCrosshair=True)
     return bbox
 
+class CameraSetup:
+    '''
+    Crops the camera frame and genterates a transformation matrix to use to
+    undistort furture frames utilizing a 4 point transformation matrix.
+    '''
+    def __init__(self,image,canvas_width,canvas_height):
+        self.points = [] #user selected points
+        self.width = canvas_width
+        self.height = canvas_height
+        self.image = image
+
+        # cv2.setMouseCallback("Camera",self.select_point)
+        print('setup complete')
+
+    def select_point(self,event,x,y,flags,param):
+        print("inside select point loop")
+        if event == cv2.EVENT_LBUTTONDBLCLK:
+            print("click")
+            cv2.circle(self.image,(x,y),4,(0,0,255),-1)
+            self.points.append((x,y))
+
+    def get_t_matrix(self):
+        self.points = order_points(self.points)
+        destination_pts = np.array([
+        [0, 0],
+        [self.width - 1, 0],
+        [self.width - 1, self.height - 1],
+        [0, self.height - 1]], dtype = "float32")
+
+        self.t_matrix = cv2.getPerspectiveTransform(self.points, destination_pts)
+        return self.t_matrix
+
+
+    def order_points(self,pts):
+        #from: https://www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
+        # initialzie a list of coordinates that will be ordered
+        # such that the first entry in the list is the top-left,
+        # the second entry is the top-right, the third is the
+        # bottom-right, and the fourth is the bottom-left
+        rect = np.zeros((4, 2), dtype = "float32")
+        # the top-left point will have the smallest sum, whereas
+        # the bottom-right point will have the largest sum
+        s = pts.sum(axis = 1)
+        rect[0] = pts[np.argmin(s)]
+        rect[2] = pts[np.argmax(s)]
+        # now, compute the difference between the points, the
+        # top-right point will have the smallest difference,
+        # whereas the bottom-left will have the largest difference
+        diff = np.diff(pts, axis = 1)
+        rect[1] = pts[np.argmin(diff)]
+        rect[3] = pts[np.argmax(diff)]
+        # return the ordered coordinates
+        return rect
 
 
 class WebcamVideoStream :
