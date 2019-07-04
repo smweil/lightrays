@@ -1,5 +1,6 @@
 from threading import Thread, Lock
 import cv2
+import numpy as np
 #From: https://gist.github.com/allskyee/7749b9318e914ca45eb0a1000a81bf56
 
 def crop_by_bbox(frame,bbox):
@@ -32,24 +33,27 @@ class CameraSetup:
     Crops the camera frame and genterates a transformation matrix to use to
     undistort furture frames utilizing a 4 point transformation matrix.
     '''
-    def __init__(self,image,canvas_width,canvas_height):
+    def __init__(self,camera_window_name,image,canvas_width,canvas_height):
         self.points = [] #user selected points
         self.width = canvas_width
         self.height = canvas_height
         self.image = image
+        cv2.setMouseCallback(camera_window_name,self.select_point)
 
-        # cv2.setMouseCallback("Camera",self.select_point)
+        while len(self.points)<4:
+            cv2.imshow(camera_window_name, image)
+            cv2.waitKey(10)
+        t_matrix = self.get_t_matrix()
+
         print('setup complete')
 
     def select_point(self,event,x,y,flags,param):
-        print("inside select point loop")
-        if event == cv2.EVENT_LBUTTONDBLCLK:
-            print("click")
-            cv2.circle(self.image,(x,y),4,(0,0,255),-1)
-            self.points.append((x,y))
+            if event == cv2.EVENT_LBUTTONDBLCLK:
+                cv2.circle(self.image,(x,y),4,(0,0,255),-1)
+                self.points.append((x,y))
 
     def get_t_matrix(self):
-        self.points = order_points(self.points)
+        self.points = self.order_points(self.points)
         destination_pts = np.array([
         [0, 0],
         [self.width - 1, 0],
@@ -67,6 +71,7 @@ class CameraSetup:
         # the second entry is the top-right, the third is the
         # bottom-right, and the fourth is the bottom-left
         rect = np.zeros((4, 2), dtype = "float32")
+        pts = np.array(pts)
         # the top-left point will have the smallest sum, whereas
         # the bottom-right point will have the largest sum
         s = pts.sum(axis = 1)

@@ -7,7 +7,7 @@ from collections import deque
 
 #This class will handle the detection and tracking of the laser
 class LaserTracker:
-    def __init__(self,lowerRange,upperRange,scale_factors,reset_trigger = 100):
+    def __init__(self,lowerRange,upperRange,t_matrix,reset_trigger = 100):
         '''
         This class holds detection parameters, and collects detected points
 
@@ -15,15 +15,14 @@ class LaserTracker:
         lowerRange -- the lower HSV detection values (H,S,V)
         upperRange -- the upper HSV detection values (H,S,V)
 
-        scale_factors -- these factors are the difference between the detection
-        screen coordinates and the display screen (canvas) coordinates.
+        t_matrix -- this is the warped transformation matrix
 
         reset_trigger is the amount of frames the laser has not been detected
         before it resets the list of detected points (trail)
 
         if reset_counter=0 the trails never disappear.
         '''
-        self.scale_factors = scale_factors #the difference in size between cam and canvas
+        self.t_matrix = t_matrix #the difference in size between cam and canvas
         self.upperRange = upperRange
         self.lowerRange = lowerRange
         self.trackerStatus = False #initally there is no tracker running
@@ -62,11 +61,10 @@ class LaserTracker:
             #We detected a contour so the laser is onscreen
             self.onScreen = True
 
-            #scale the points based on the difference between the cam and the canvas:
-            #This will become transformation matrix
-            scaled_center = (int(center[0]*self.scale_factors[0]),
-                            int(center[1]*self.scale_factors[1]))
-
+            # https://www.learnopencv.com/homography-examples-using-opencv-python-c/
+            original = (center[0],center[1],1)
+            transformed_points = self.t_matrix.dot((original))
+            scaled_center = (int(transformed_points[0]),int(transformed_points[1]))
             self.ptsDeque.appendleft(scaled_center) #add points to display
 
         else: #nothing detected
@@ -100,9 +98,10 @@ class LaserTracker:
                 self.center = (int(bbox[0]+bbox[2]/2),int(bbox[1]+bbox[3]/2))
                 self.radius = bbox[2]/2
                 #add points to list
-                scaled_center = (int(self.center[0]*self.scale_factors[0]),
-                                int(self.center[1]*self.scale_factors[1]))
-                self.ptsDeque.appendleft(scaled_center)
+                original = (center[0],center[1],1)
+                transformed_points = self.t_matrix.dot((original))
+                scaled_center = (int(transformed_points[0]),int(transformed_points[1]))
+                self.ptsDeque.appendleft(scaled_center) #add points to display
             else :
                 #We have lost the tracker:
                 self.onScreen = False

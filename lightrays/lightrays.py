@@ -57,22 +57,11 @@ while setup_flag:
     if setup_flag ==2:
         key = cv2.waitKey(1) & 0xFF
         CamTools.draw_setup_text(camera_window_name,camera_frame)
+
         if key ==ord("s"):
-            #Old school way of just utilizing a square:
-            # camera_roi= CamTools.select_canvas_area(camera_window,camera_frame)
-
             camera_setup = CamTools.CameraSetup(
-                camera_frame,canvas.frame_width,canvas.frame_height)
-
-
-            cv2.setMouseCallback(camera_window_name,camera_setup.select_point)
-
-            while len(camera_setup.points)<3:
-                cv2.imshow(camera_window_name, camera_frame)
-                cv2.waitKey(10)
-
-            t_matrix = camera_setup.get_t_matrix()
-
+                camera_window_name,camera_frame,canvas.frame_width,canvas.frame_height)
+            t_matrix = camera_setup.t_matrix
 
             setup_flag =0
         if key ==ord("h"): #setup a new filter
@@ -91,9 +80,11 @@ while setup_flag:
 
 #Initialize trackers:
 if user_defined_filter:
-    red_laser = TrackTools.LaserTracker(hsv_lower,hsv_upper,scale_factors,100)
+    red_laser = TrackTools.LaserTracker(
+        hsv_lower,hsv_upper,t_matrix,100)
 else:
-    red_laser = TrackTools.LaserTracker(red_lower,red_upper,scale_factors,100)
+    red_laser = TrackTools.LaserTracker(
+        red_lower,red_upper,t_matrix,100)
 
 #Dev note: Setup sliders in this file and just call them from the drawtools
 #file
