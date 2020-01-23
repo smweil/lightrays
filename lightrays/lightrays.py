@@ -13,10 +13,11 @@ from imutils.video import FPS
 camera_window_name = "Camera"
 cv2.namedWindow(camera_window_name,cv2.WINDOW_NORMAL)
 # camera_window = cv2.namedWindow(camera_window_name,cv2.WINDOW_NORMAL)
+
 canvas = CanvasTools.Canvas(screen_resolution=(1280,720))
 
 
-video_file = False #Set this flag to False if using a webcam
+# video_file = False #Set this flag to False if using a webcam
 video_file = './bin/laserwall.mp4'
 
 if video_file:
@@ -35,6 +36,7 @@ ret, camera_frame = video_stream.read()
 setup_flag = 1
 camera_roi = None
 user_defined_filter = 0 #flag if the user used custom HSV in the beginning
+
 while setup_flag:
     #Setup Canvas:
     if setup_flag ==1:
@@ -65,7 +67,7 @@ while setup_flag:
 
             setup_flag =0
         if key ==ord("h"): #setup a new filter
-            hsv_lower,hsv_upper = CamGUI.run_gui(camera_window,video_stream)
+            hsv_lower,hsv_upper = CamGUI.run_gui(camera_window_name,video_stream)
             user_defined_filter = 1
         if key == 13: #if enter key is hit first assume no cropping
             scale_factors = (1,1)
