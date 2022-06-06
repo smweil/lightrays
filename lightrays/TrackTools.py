@@ -28,6 +28,11 @@ class LaserTracker:
         self.trackerStatus = False  # initally there is no tracker running
         self.onScreen = False  # Tell us if the laser is currently detected
         self.ptsDeque = deque()  # empty list for tracked points
+        # self.accDeque = deque()  # Acelleration list
+        self.velDeque = deque()  # velocity list
+        self.velDeque.appendleft(1)
+        # initialize first value
+        self.dirDeque = deuqe()  # direction 1 N 2 E 3 S 4 W
         self.polygonDeque = deque()  # list of drawn shapes
         self.lostTrackCounter = -1
         # initialize the number of times we've lost it
@@ -66,6 +71,13 @@ class LaserTracker:
             transformed_points = self.t_matrix.dot((original))
             scaled_center = (int(transformed_points[0]), int(transformed_points[1]))
             self.ptsDeque.appendleft(scaled_center)  # add points to display
+
+            # Calculate metrics:
+
+        if len(self.ptsDeque) > 1:  # WORKING HERE
+            distance = math.dist(self.ptsDeque[-1], self.ptsDeque[-2])
+
+            pass
 
         else:  # nothing detected
             self.onScren = False
