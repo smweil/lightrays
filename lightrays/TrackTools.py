@@ -32,7 +32,7 @@ class LaserTracker:
         self.velDeque = deque()  # velocity list
         self.velDeque.appendleft(1)
         # initialize first value
-        self.dirDeque = deuqe()  # direction 1 N 2 E 3 S 4 W
+        self.dirDeque = deque()  # direction 1 N 2 E 3 S 4 W
         self.polygonDeque = deque()  # list of drawn shapes
         self.lostTrackCounter = -1
         # initialize the number of times we've lost it
