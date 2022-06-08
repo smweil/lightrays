@@ -64,6 +64,7 @@ while setup_flag:
                 camera_frame,
                 canvas.frame_width,
                 canvas.frame_height,
+                True,  # debug flag
             )
             t_matrix = camera_setup.t_matrix
 

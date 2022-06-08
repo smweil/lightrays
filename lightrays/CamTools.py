@@ -52,19 +52,28 @@ class CameraSetup:
     undistort furture frames utilizing a 4 point transformation matrix.
     """
 
-    def __init__(self, camera_window_name, image, canvas_width, canvas_height):
+    def __init__(
+        self, camera_window_name, image, canvas_width, canvas_height, cat_debug=False
+    ):
+        # cat debug is to skip the user selction for the video debugging
+
         self.points = []  # user selected points
         self.width = canvas_width
         self.height = canvas_height
         self.image = image
-        cv2.setMouseCallback(camera_window_name, self.select_point)
 
-        while len(self.points) < 4:
-            cv2.imshow(camera_window_name, image)
-            cv2.waitKey(10)
+        if cat_debug == True:
+            cat_points = [[83, 9], [451, 5], [462, 263], [115, 230]]
+            self.points = cat_points
+        else:
+            cv2.setMouseCallback(camera_window_name, self.select_point)
+
+            while len(self.points) < 4:
+                cv2.imshow(camera_window_name, image)
+                cv2.waitKey(10)
         t_matrix = self.get_t_matrix()
 
-        print("setup complete")
+        print("Camera Setup Complete: ", self.points)
 
     def select_point(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONUP:
