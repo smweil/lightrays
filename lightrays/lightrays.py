@@ -31,6 +31,7 @@ else:
 
 
 ret, camera_frame = video_stream.read()
+# diagonal_distance =math. sqrt(camera_frame.get(3) ** 2 + camera_frame_get(4) ** 2)
 setup_flag = 1
 camera_roi = None
 user_defined_filter = 0  # flag if the user used custom HSV in the beginning
@@ -129,13 +130,20 @@ while 1:
 
     if red_laser.onScreen:
         if mode == 0:
-            DrawTools.pen_mode(
+            DrawTools.draw_brush(
                 canvas.frame,
                 canvas.window_name,
                 red_laser.ptsDeque,
-                red_color,
-                red_thickness,
+                color=(0, 255, 0),
+                thickness=red_laser.brush_width,
             )
+            # DrawTools.pen_mode(
+            #     canvas.frame,
+            #     canvas.window_name,
+            #     red_laser.ptsDeque,
+            #     red_color,
+            #     red_thickness,
+            # )
         elif mode == 1:
             DrawTools.draw_rainbow_snake(
                 canvas.frame, canvas.window_name, red_laser.ptsDeque, thickness=-1

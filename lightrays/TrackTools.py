@@ -29,8 +29,11 @@ class LaserTracker:
         self.onScreen = False  # Tell us if the laser is currently detected
         self.ptsDeque = deque()  # empty list for tracked points
         # self.accDeque = deque()  # Acelleration list
-        self.velDeque = deque()  # velocity list
+
+        self.velDeque = deque()  # velocity list CHANGE maybe doesn't need to be a deque
         self.velDeque.appendleft(1)
+
+        self.brush_width = 1  # initialize brush width
         # initialize first value
         self.dirDeque = deque()  # direction 1 N 2 E 3 S 4 W
         self.polygonDeque = deque()  # list of drawn shapes
@@ -75,9 +78,14 @@ class LaserTracker:
             # Calculate metrics:
 
         if len(self.ptsDeque) > 1:  # WORKING HERE
-            distance = math.dist(self.ptsDeque[-1], self.ptsDeque[-2])
-
-            pass
+            distance = math.dist(self.ptsDeque[0], self.ptsDeque[1])
+            # treat 1/16 of the screen as max speed
+            height = frame.shape[0]
+            width = frame.shape[1]
+            # need to use diagonal distance here, but i dont want to calculate it coninuously
+            self.brush_width = distance / (
+                width * (1 / 32)
+            )  # max speed will be when it travels 1/16 of the width CHANGE should be diagonal dist
 
         else:  # nothing detected
             self.onScren = False
