@@ -130,7 +130,7 @@ while 1:
 
     if red_laser.onScreen:
         if mode == 0:
-            DrawTools.draw_brush(
+            canvas.frame = DrawTools.draw_brush(
                 canvas.frame,
                 canvas.window_name,
                 red_laser.ptsDeque,

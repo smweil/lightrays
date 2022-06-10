@@ -7,6 +7,7 @@ import DrawGUI
 
 # Dev note:
 # make each on it's own class with it's own menu? Probably no...
+# Need to make the drawings a seperate image so we can blue them when we overlay them onto the background
 
 
 def draw_tracking_reticle(frame, window, LaserTracker):
@@ -57,11 +58,19 @@ def draw_brush(frame, window, pts, color=(0, 255, 0), thickness=4):
     if thickness > 10:
         thickness = 10
 
+    # Change use add_weighted for alpha blending?
+    overlay = frame.copy()
     # color = hsv2rgb(hue, 360, 360)
     if len(pts) > 1:
-        cv2.line(frame, pts[0], pts[1], color, thickness, lineType=cv2.LINE_AA)
+        cv2.line(overlay, pts[0], pts[1], color, thickness, lineType=cv2.LINE_AA)
         # print("pt0:", pts[0],"pt1:",pts[1])
+
+    alpha = 0.50  # scale on thickness
+
+    frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
+
     cv2.imshow(window, frame)
+    return frame
 
 
 def draw_3d_snake(frame, window, pts, polygon_list, thickness=4, rotation_factor=0.3):
