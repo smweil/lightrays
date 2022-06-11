@@ -49,23 +49,21 @@ def draw_brush(frame, window, pts, color=(0, 255, 0), thickness=4):
     # Allows the user to cycle through colors and brush width with keyboard
     height = frame.shape[0]
     width = frame.shape[1]
-
+    overlay = frame.copy()  # overlay for alpha blending
     # hue = DrawGUI.get_trackbar_values(["Hue"])
+    alpha = thickness  # scale on thickness
+
     thickness = int(thickness * 5)  # scale thickness from 0-1 to 0-5
     if thickness < 1:
         thickness = 1
 
-    if thickness > 10:
-        thickness = 10
+    if thickness > 20:
+        thickness = 20
 
-    # Change use add_weighted for alpha blending?
-    overlay = frame.copy()
     # color = hsv2rgb(hue, 360, 360)
     if len(pts) > 1:
         cv2.line(overlay, pts[0], pts[1], color, thickness, lineType=cv2.LINE_AA)
         # print("pt0:", pts[0],"pt1:",pts[1])
-
-    alpha = 0.50  # scale on thickness
 
     frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
 

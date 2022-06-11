@@ -82,10 +82,21 @@ class LaserTracker:
             # treat 1/16 of the screen as max speed
             height = frame.shape[0]
             width = frame.shape[1]
+
+            diagonal = math.sqrt(
+                height ** 2 + width ** 2
+            )  # change dont calculate this every loop
+
             # need to use diagonal distance here, but i dont want to calculate it coninuously
-            self.brush_width = distance / (
-                width * (1 / 32)
-            )  # max speed will be when it travels 1/16 of the width CHANGE should be diagonal dist
+            brush_max_speed = (
+                1 / 16
+            )  # when the brush travels 1/16 of the screen it's max speed
+            distance = distance / (diagonal * brush_max_speed)
+
+            self.brush_width = 2 * (1 - min(distance, 1))
+            print("brush", self.brush_width)
+
+            # max speed will be when it travels 1/16 of the width CHANGE should be diagonal dist
 
         else:  # nothing detected
             self.onScren = False
@@ -95,8 +106,6 @@ class LaserTracker:
     def initialize_tracker(self, center, radius, frame):
         tracker_type = "KCF"
 
-        if tracker_type == "KCF":
-            tracker = cv2.TrackerKCF_create()
         if tracker_type == "KCF":
             tracker = cv2.TrackerKCF_create()
         if tracker_type == "TLD":
