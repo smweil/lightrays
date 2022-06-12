@@ -63,7 +63,8 @@ class CameraSetup:
         self.image = image
 
         if cat_debug == True:
-            cat_points = [[83, 9], [451, 5], [462, 263], [115, 230]]
+            # cat_points = [[ 83, 9],[451,   5],[462, 263],[115, 230]]
+            cat_points = [[66, 318], [965, 311], [984, 852], [203, 837]]  # green
             self.points = cat_points
         else:
             cv2.setMouseCallback(camera_window_name, self.select_point)

@@ -9,6 +9,8 @@ import config
 import CamGUI
 from imutils.video import FPS
 
+import matplotlib.pyplot as plt  # remove, change only for debug
+
 # Windows names
 camera_window_name = "Camera"
 cv2.namedWindow(camera_window_name, cv2.WINDOW_NORMAL)
@@ -18,11 +20,14 @@ canvas = CanvasTools.Canvas(screen_resolution=(1280, 720))
 
 
 # video_file = False #Set this flag to False if using a webcam
-video_file = "./bin/laserwall.mp4"
+# video_file = "./bin/laserwall.mp4"
+video_file = "./bin/green_test.mp4"
 
 if video_file:
-    red_lower = config.laser_settings["red_lower_video"]
-    red_upper = config.laser_settings["red_upper_video"]
+    red_lower = config.laser_settings["green_lower_video"]
+    red_upper = config.laser_settings["green_upper_video"]
+    # red_lower = config.laser_settings["red_lower_video"]
+    # red_upper = config.laser_settings["red_upper_video"]
     video_stream = cv2.VideoCapture(video_file)
 else:
     red_lower = config.laser_settings["red_lower_k"]
@@ -111,6 +116,9 @@ while 1:
     key = cv2.waitKey(1)
     if key == ord("q"):
         break
+    elif key == ord("p"):
+        print("Paused")
+        cv2.waitKey()
     elif key == ord("c"):
         canvas.clear_image()
         print("CLEARED")
@@ -135,7 +143,7 @@ while 1:
                 canvas.window_name,
                 red_laser.ptsDeque,
                 color=(0, 255, 0),
-                thickness=red_laser.brush_width,
+                speed=red_laser.brush_width,
             )
             # DrawTools.pen_mode(
             #     canvas.frame,
@@ -190,6 +198,10 @@ fps.stop()
 print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 print("[INFO] Lost Track: {:.2f}".format(red_laser.lostTrackCounter))
+plt.plot(red_laser.velDeque)
+plt.title("Velocity")
+
+plt.show()
 
 # Housekeeping
 if ret == 1:

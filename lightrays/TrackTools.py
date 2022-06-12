@@ -36,6 +36,8 @@ class LaserTracker:
         self.brush_width = 1  # initialize brush width
         # initialize first value
         self.dirDeque = deque()  # direction 1 N 2 E 3 S 4 W
+        self.dirDeque.appendleft(0)
+
         self.polygonDeque = deque()  # list of drawn shapes
         self.lostTrackCounter = -1
         # initialize the number of times we've lost it
@@ -75,28 +77,34 @@ class LaserTracker:
             scaled_center = (int(transformed_points[0]), int(transformed_points[1]))
             self.ptsDeque.appendleft(scaled_center)  # add points to display
 
-            # Calculate metrics:
-
+        # Calculate metrics:
         if len(self.ptsDeque) > 1:  # WORKING HERE
             distance = math.dist(self.ptsDeque[0], self.ptsDeque[1])
+            deltaX = self.ptsDeque[0][0] - self.ptsDeque[1][0]
+            deltaY = self.ptsDeque[0][1] - self.ptsDeque[1][1]
+
+            direction = round(180 - math.atan2(deltaX, deltaY) / math.pi * 180)
+            self.dirDeque.appendleft(direction)
             # treat 1/16 of the screen as max speed
             height = frame.shape[0]
             width = frame.shape[1]
 
             diagonal = math.sqrt(
                 height ** 2 + width ** 2
-            )  # change dont calculate this every loop
+            )  # change dont calculate this every loop just pass it into the function
 
-            # need to use diagonal distance here, but i dont want to calculate it coninuously
             brush_max_speed = (
-                1 / 16
-            )  # when the brush travels 1/16 of the screen it's max speed
-            distance = distance / (diagonal * brush_max_speed)
+                1 / 32  # when the brush travels of the screen it's max speed
+            )
+            speed = distance / (diagonal * brush_max_speed)
+            self.velDeque.appendleft(speed)
 
-            self.brush_width = 2 * (1 - min(distance, 1))
-            print("brush", self.brush_width)
+            self.speed = speed
 
-            # max speed will be when it travels 1/16 of the width CHANGE should be diagonal dist
+            # remove from this file move to draw tools:
+            self.brush_width = 10 * (1 - min(speed, 1))
+            print("Direction: ", self.dirDeque[0])
+            # print("Width: ", self.brush_width)
 
         else:  # nothing detected
             self.onScren = False

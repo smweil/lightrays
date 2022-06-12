@@ -1,4 +1,5 @@
 import cv2
+import random
 import numpy as np
 import colorsys
 from collections import deque
@@ -44,26 +45,35 @@ def pen_mode(frame, window, pts, new_line_count, color=(0, 255, 0), thickness=4)
     cv2.imshow(window, frame)
 
 
-def draw_brush(frame, window, pts, color=(0, 255, 0), thickness=4):
+def draw_brush(frame, window, pts, color=(0, 255, 0), speed=4):
     # COLOR IN BGR
     # Allows the user to cycle through colors and brush width with keyboard
     height = frame.shape[0]
     width = frame.shape[1]
     overlay = frame.copy()  # overlay for alpha blending
     # hue = DrawGUI.get_trackbar_values(["Hue"])
-    alpha = thickness  # scale on thickness
+    # alpha = thickness  # scale on thickness7
+    alpha = 1
+    thickness = round(speed)
+    if thickness < 4:
+        thickness = 4
 
-    thickness = int(thickness * 5)  # scale thickness from 0-1 to 0-5
-    if thickness < 1:
-        thickness = 1
-
-    if thickness > 20:
-        thickness = 20
-
+    if thickness > 50:
+        thickness = 50
+    # print("thickness: ", thickness)
+    thickness_noise = thickness + random.randint(0, 2)
     # color = hsv2rgb(hue, 360, 360)
     if len(pts) > 1:
         cv2.line(overlay, pts[0], pts[1], color, thickness, lineType=cv2.LINE_AA)
-        # print("pt0:", pts[0],"pt1:",pts[1])
+
+        # cv2.line(
+        #     overlay,
+        #     pts[0],
+        #     pts[1],
+        #     color,
+        #     thickness + thickness_noise,
+        #     lineType=cv2.LINE_AA,
+        # )
 
     frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
 

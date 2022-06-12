@@ -43,6 +43,7 @@ def run_gui(window, video_stream):
     hsv_values = []  # H_min, S_min, V_min, H_max, S_max, V_max
 
     while 1:
+        # key = cv2.waitKey(1) & 0xFF
         key = cv2.waitKey(1) & 0xFF
         ret, frame = video_stream.read()
         hsv_values = get_trackbar_values()
@@ -52,6 +53,8 @@ def run_gui(window, video_stream):
         if key == 13:  # Enter
             min_v = hsv_values[:3]
             max_v = hsv_values[3:6]
+            print("MIN: ", min_v)
+            print("MAX: ", max_v)
             cv2.destroyWindow("Camera Settings")
             return tuple(min_v), tuple(max_v)
             break
